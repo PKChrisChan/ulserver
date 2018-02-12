@@ -1,0 +1,11 @@
+{
+  "host": "10.20.18.1",
+  "port": 3306,
+  "databases": {
+    "ul_item": "Ier9chov5ohFaPh",
+    "ul_player": "Ier9chov5ohFaPh",
+    "ul_guild": "Ier9chov5ohFaPh",
+    "ul_billing": "Ier9chov5ohFaPh",
+    "ul_level": "Ier9chov5ohFaPh"
+  }
+}

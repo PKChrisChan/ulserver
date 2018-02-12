@@ -1,0 +1,5 @@
+{
+  "port": 7500,
+  "env": "dev",
+  "gameVersion": 17011
+}
