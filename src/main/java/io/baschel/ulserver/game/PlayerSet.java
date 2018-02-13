@@ -37,7 +37,7 @@ public class PlayerSet {
                 try {
                     return PlayerRecord.class.getMethod(f);
                 } catch (NoSuchMethodException e1) {
-                    L.error("Failed to find field or method named {0} on PlayerRecord!", e1, f);
+                    L.error("Failed to find field or method named {} on PlayerRecord!", e1, f);
                     return null;
                 }
             }
@@ -54,7 +54,7 @@ public class PlayerSet {
                 try {
                     return f.get(p);
                 } catch (IllegalAccessException e) {
-                    L.error("Failed to get {0} from {1}", e, fieldOrMethod, p.pid);
+                    L.error("Failed to get {} from {}", e, fieldOrMethod, p.pid);
                 }
                 return null;
             };
@@ -66,7 +66,7 @@ public class PlayerSet {
                 try {
                     return meth.invoke(p);
                 } catch (IllegalAccessException | InvocationTargetException e) {
-                    L.error("Failed to invoke {0} on {1}", e, fieldOrMethod, p.pid);
+                    L.error("Failed to invoke {} on {}", e, fieldOrMethod, p.pid);
                 }
                 return null;
             };
@@ -78,7 +78,7 @@ public class PlayerSet {
     private void indexRecord(PlayerRecord p, String field){
         Object o = getMemberValue(field).apply(p);
         if(o == null) {
-            L.error("Not indexing {0}", p.pid);
+            L.error("Not indexing {}", p.pid);
             return;
         }
         playerRecordIndices.get(field).computeIfAbsent(o, k -> new HashSet<>());
@@ -109,7 +109,7 @@ public class PlayerSet {
         playerRecordIndices.keySet().forEach(key -> {
             Object o = getMemberValue(key);
             if(o == null) {
-                L.error("Can't get memberValue for {0} not removing {1} from index", key, rec.pid);
+                L.error("Can't get memberValue for {} not removing {} from index", key, rec.pid);
                 return;
             }
             Set<PlayerRecord> playerSet = playerRecordIndices.get(key).get(o);

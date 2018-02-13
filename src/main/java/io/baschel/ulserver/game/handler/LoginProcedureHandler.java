@@ -8,11 +8,14 @@ import io.baschel.ulserver.msgs.lyra.GMsg_PreLogin;
 import io.baschel.ulserver.msgs.lyra.GMsg_PreLoginAck;
 import io.baschel.ulserver.msgs.lyra.LyraMessage;
 import io.baschel.ulserver.msgs.lyra.consts.LyraConsts;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 
 import java.util.*;
 
 public class LoginProcedureHandler implements MessageHandler {
     static Set<Class<? extends LyraMessage>> handleSet = new HashSet<>();
+    private static final Logger L = LoggerFactory.getLogger(LoginProcedureHandler.class);
     private Map<String, String> pendingConnectionChallengeMap = new HashMap<>();
     static {
         handleSet.add(GMsg_PreLogin.class);
@@ -28,10 +31,13 @@ public class LoginProcedureHandler implements MessageHandler {
     }
 
     private void handlePreLogin(String source, GMsg_PreLogin message) {
+        L.info("Received PreLogin");
         GMsg_PreLoginAck pla = new GMsg_PreLoginAck();
         pla.version = Main.config.serverConfig.gameVersion;
-        if(message.version != Main.config.serverConfig.gameVersion)
+        if(message.version != Main.config.serverConfig.gameVersion) {
+            L.warn("Version mismatch: Expected {} got {}", Main.config.serverConfig.gameVersion, message.version);
             pla.status = LyraConsts.LoginStatus.LOGIN_UNKNOWNERROR.toValue();
+        }
         else {
             initChallenge(source);
             pla.status = LyraConsts.LoginStatus.LOGIN_OK.toValue();

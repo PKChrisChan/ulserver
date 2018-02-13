@@ -95,18 +95,18 @@ public class PlayerRecordRequestHandler implements InternalMessageHandler {
                 "pps,pp_pool,last_logout from player " + whereClause, params, res -> {
             conn.close();
             if(res.failed()) {
-                L.error("Failed to retrieve player record for {0}", res.cause(), params.encode());
+                L.error("Failed to retrieve player record for {}", res.cause(), params.encode());
                 recordRequest.failed = true;
                 sourceMessage.fail(-1, res.cause().toString());
             }
             else {
                 if(res.result().getNumRows() == 0) {
-                    L.error("Failed to retrieve player record for {0} - numrows was 0", params.encode());
+                    L.error("Failed to retrieve player record for {} - numrows was 0", params.encode());
                     recordRequest.failed = true;
                     sourceMessage.fail(0, "Unable to locate PlayerRecord!");
                 }
                 else if(res.result().getNumRows() != 1) {
-                    L.error("Failed to retrieve player record for {0} - numrows was > 1", params.encode());
+                    L.error("Failed to retrieve player record for {} - numrows was > 1", params.encode());
                     sourceMessage.fail(1, "Ambiguous PlayerRecord response!");
                     recordRequest.failed = true;
                 }
@@ -132,7 +132,7 @@ public class PlayerRecordRequestHandler implements InternalMessageHandler {
         conn.queryWithParams("select * from guildplayer where player_id=? and rank > 0", new JsonArray().add(pgrr.playerId()), res -> {
             conn.close();
             if(res.failed()) {
-                L.error("Failed to retrieve from guildplayer for {0}", res.cause(), pgrr.pid);
+                L.error("Failed to retrieve from guildplayer for {}", res.cause(), pgrr.pid);
                 sourceMessage.fail(5, "Failed to retrieve guildranks!");
             }
             else {
@@ -151,7 +151,7 @@ public class PlayerRecordRequestHandler implements InternalMessageHandler {
         conn.queryWithParams("select * from stat where player_id=?", new JsonArray().add(psr.playerId()), res -> {
             conn.close();
             if(res.failed()) {
-                L.error("Failed to retrieve from stat for {0}", res.cause(), psr.pid);
+                L.error("Failed to retrieve from stat for {}", res.cause(), psr.pid);
                 sourceMessage.fail(5, "Failed to retrieve stats!");
             }
             else {
@@ -231,7 +231,7 @@ public class PlayerRecordRequestHandler implements InternalMessageHandler {
         PlayerInventoryRequest pir = PlayerInventoryRequest.of(rec.pid);
         pir.send(reply -> {
            if(reply.failed()) {
-               L.error("Failed to retrieve items for {0}", reply.cause(), rec.pid);
+               L.error("Failed to retrieve items for {}", reply.cause(), rec.pid);
                req.failed = true;
                msg.fail(3, "Unable to retrieve items");
            }

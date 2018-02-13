@@ -42,9 +42,10 @@ public class PlayerArtsRequestHandler implements InternalMessageHandler {
 
     private void _handle(SQLConnection conn, Message<JsonObject> sourceMessage, PlayerArtsRequest message) {
         conn.queryWithParams("select * from skill where player_id=?", new JsonArray().add(message.playerId()), res -> {
+            conn.close();
             if(res.failed()) {
+                L.error("Unable to fetch arts for {}", res.cause(), message.playerId());
                 sourceMessage.fail(-1, res.cause().toString());
-                conn.close();
             }
             else {
                 LmArts arts = new LmArts();
@@ -53,7 +54,6 @@ public class PlayerArtsRequestHandler implements InternalMessageHandler {
                 });
 
                 sourceMessage.reply(Json.objectToJsonObject(arts));
-                conn.close();
             }
         });
     }

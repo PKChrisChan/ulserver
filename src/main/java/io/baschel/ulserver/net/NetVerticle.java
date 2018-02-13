@@ -43,7 +43,7 @@ public class NetVerticle extends AbstractVerticle {
                 vertx.close();
             }
             else
-                L.info("Server started and bound on {0}", port);
+                L.info("Server started and bound on {}", port);
         });
 
         vertx.eventBus().consumer(EVENTBUS_ADDRESS, this::handleInternalMessage);
@@ -68,7 +68,7 @@ public class NetVerticle extends AbstractVerticle {
     private void handleConnection(NetSocket socket)
     {
         ClientConnection cxn = new ClientConnection(socket.writeHandlerID());
-        L.info("NEW CONNECTION from {0}", socket.remoteAddress().toString());
+        L.info("NEW CONNECTION from {}", socket.remoteAddress().toString());
         idSocketMap.put(socket.writeHandlerID(), socket);
         clientConnections.add(cxn);
         socket.handler(cxn::handleMessage);

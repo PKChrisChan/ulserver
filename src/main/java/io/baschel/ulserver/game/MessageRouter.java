@@ -1,6 +1,7 @@
 package io.baschel.ulserver.game;
 
 import io.baschel.ulserver.game.handler.LoginProcedureHandler;
+import io.baschel.ulserver.game.handler.PingHandler;
 import io.baschel.ulserver.msgs.lyra.LyraMessage;
 
 import java.util.HashMap;
@@ -23,6 +24,7 @@ public class MessageRouter
     public void registerHandlers()
     {
         addHandler(new LoginProcedureHandler());
+        addHandler(new PingHandler());
     }
 
     private void addHandler(MessageHandler handler) {
