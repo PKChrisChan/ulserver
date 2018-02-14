@@ -14,7 +14,7 @@ import static io.baschel.ulserver.net.ClientConnection.ConnectionState.Challenge
 import static io.baschel.ulserver.net.ClientConnection.ConnectionState.NewConnection;
 
 public class ClientConnection {
-    private static final int HEADER_LEN = 4;
+    public static final int HEADER_LEN = 4;
     private static Logger L = LoggerFactory.getLogger(ClientConnection.class);
 
     public void onClose(Void v)

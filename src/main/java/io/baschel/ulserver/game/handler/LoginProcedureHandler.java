@@ -132,7 +132,7 @@ public class LoginProcedureHandler implements MessageHandler {
                 response.request_status =  (short)LOGIN_OK.toValue().charValue();
                 response.avatar = record.avatar;
                 response.num_items = (short)record.inventory.size();
-                response.inventory = record.inventory;
+                response.items = record.inventory;
                 response.stats = record.stats;
                 response.server_port = 7500;
                 response.gamesite = 'L';

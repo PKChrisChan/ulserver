@@ -8,6 +8,10 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
+import java.io.UnsupportedEncodingException;
+
+import static io.baschel.ulserver.net.ClientConnection.HEADER_LEN;
+
 public class MessageUtils {
     private static Logger L = LoggerFactory.getLogger(MessageUtils.class);
     public static final int JSON_TYPE = 2057;
@@ -27,8 +31,13 @@ public class MessageUtils {
         Buffer buf = Buffer.buffer();
         buf.appendUnsignedShort(JSON_TYPE);
         String json = obj.encode();
-        buf.appendUnsignedShort(json.length() + 1); // trailing null!
-        buf.appendString(json);
+        try {
+            buf.appendUnsignedShort(json.getBytes("UTF-8").length + 1); // trailing null!
+            buf.appendBytes(json.getBytes("UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
         byte b = 0;
         buf.appendByte(b);
         Main.vertx.eventBus().send(source, buf);

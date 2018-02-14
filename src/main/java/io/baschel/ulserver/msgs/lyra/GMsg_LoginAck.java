@@ -24,6 +24,6 @@ public class GMsg_LoginAck implements LyraMessage {
     public int gamesite_id;
     //unsigned int login_time; // UNIX login time, in secs since 1/1/1970
     public String description;
-    public List<InventoryItem> inventory;
+    public List<InventoryItem> items;
 
 }
