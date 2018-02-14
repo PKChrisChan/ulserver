@@ -3,6 +3,8 @@ package io.baschel.ulserver.net;
 import io.baschel.ulserver.Main;
 import io.baschel.ulserver.game.GameVerticle;
 import io.baschel.ulserver.msgs.MessageUtils;
+import io.baschel.ulserver.msgs.internal.DisconnectClient;
+import io.baschel.ulserver.util.Json;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
@@ -14,6 +16,13 @@ import static io.baschel.ulserver.net.ClientConnection.ConnectionState.NewConnec
 public class ClientConnection {
     private static final int HEADER_LEN = 4;
     private static Logger L = LoggerFactory.getLogger(ClientConnection.class);
+
+    public void onClose(Void v)
+    {
+        L.debug("Received close for connection {}", cxnId);
+        Main.vertx.eventBus().send(GameVerticle.INTERNAL_MESSAGE_ADDRESS, Json.objectToJsonObject(new DisconnectClient(cxnId)));
+    }
+
     public static class MessageHeader
     {
         public int type;

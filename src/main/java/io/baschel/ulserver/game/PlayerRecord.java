@@ -1,9 +1,6 @@
 package io.baschel.ulserver.game;
 
-import io.baschel.ulserver.msgs.lyra.LmArts;
-import io.baschel.ulserver.msgs.lyra.LmAvatar;
-import io.baschel.ulserver.msgs.lyra.LmItem;
-import io.baschel.ulserver.msgs.lyra.LmStats;
+import io.baschel.ulserver.msgs.lyra.*;
 import io.baschel.ulserver.msgs.lyra.consts.LyraConsts;
 
 import java.time.LocalDate;
@@ -13,6 +10,8 @@ import java.util.Date;
 import java.util.List;
 
 public class PlayerRecord {
+    public String connectionId;
+
     public PlayerRecord()
     {
         avatar = new LmAvatar();
@@ -28,9 +27,9 @@ public class PlayerRecord {
     public LmAvatar avatar;
     public LmArts arts;
     public LmStats stats;
-    public List<LmItem> inventory;
+    public List<InventoryItem> inventory;
 
-    public LyraConsts.AcctType acctType;
+    public int acctType;
     public int billingId;
     public String description;
 
@@ -61,5 +60,28 @@ public class PlayerRecord {
             sb.append('R' + Integer.toString(room));
         }
         return sb.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        PlayerRecord that = (PlayerRecord) o;
+
+        if (pid != that.pid) return false;
+        if(!upperName().equals(that.upperName()))
+            return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        int result = connectionId != null ? connectionId.hashCode() : 0;
+        result = 31 * result + pid;
+        result = 31 * result + upperName().hashCode();
+        return result;
     }
 }

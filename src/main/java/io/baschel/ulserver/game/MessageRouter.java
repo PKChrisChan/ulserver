@@ -23,7 +23,7 @@ public class MessageRouter
 
     public void registerHandlers()
     {
-        addHandler(new LoginProcedureHandler());
+        addHandler(new LoginProcedureHandler(gameState));
         addHandler(new PingHandler());
     }
 

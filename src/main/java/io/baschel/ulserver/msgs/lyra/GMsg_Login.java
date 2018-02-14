@@ -1,7 +1,7 @@
 package io.baschel.ulserver.msgs.lyra;
 
 public class GMsg_Login implements LyraMessage {
-    public int version;                            // client version
+    public long version;                            // client version
     public String playername;
     public String hash;							// md5 hash of server challenge
     public int serv_port;                          // UDP port number for S->C local group updates

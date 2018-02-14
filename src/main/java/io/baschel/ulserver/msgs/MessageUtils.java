@@ -23,6 +23,7 @@ public class MessageUtils {
     public static void sendJsonMessage(String source, LyraMessage message)
     {
         JsonObject obj = Json.objectToJsonObject(message);
+        L.debug("Sending message {} to {}", obj.encode(), source);
         Buffer buf = Buffer.buffer();
         buf.appendUnsignedShort(JSON_TYPE);
         String json = obj.encode();

@@ -25,7 +25,6 @@ public class NetVerticle extends AbstractVerticle {
 
     private NetServer tcpServer;
     private Set<ClientConnection> clientConnections = new HashSet<>();
-    private Map<String, NetSocket> idSocketMap = new HashMap<>();
     public static final String EVENTBUS_ADDRESS = NetVerticle.class.getName();
     public static final Logger L = LoggerFactory.getLogger(NetVerticle.class);
 
@@ -36,6 +35,7 @@ public class NetVerticle extends AbstractVerticle {
         tcpServer = vertx.createNetServer();
 
         tcpServer.connectHandler(this::handleConnection);
+
         tcpServer.listen(port, result -> {
             if(!result.succeeded())
             {
@@ -45,32 +45,14 @@ public class NetVerticle extends AbstractVerticle {
             else
                 L.info("Server started and bound on {}", port);
         });
-
-        vertx.eventBus().consumer(EVENTBUS_ADDRESS, this::handleInternalMessage);
-    }
-
-    private void handleInternalMessage(Message<JsonObject> tMessage) {
-        InternalServerMessage imsg = Json.objectFromJsonObject(tMessage.body(), InternalServerMessage.class);
-
-        if(imsg instanceof DisconnectClient)
-        {
-            handleDisconnectClient((DisconnectClient)imsg);
-            return;
-        }
-    }
-
-    private void handleDisconnectClient(DisconnectClient imsg) {
-        NetSocket sock = idSocketMap.get(imsg.getClientId());
-        if(sock != null)
-            sock.close();
     }
 
     private void handleConnection(NetSocket socket)
     {
         ClientConnection cxn = new ClientConnection(socket.writeHandlerID());
         L.info("NEW CONNECTION from {}", socket.remoteAddress().toString());
-        idSocketMap.put(socket.writeHandlerID(), socket);
         clientConnections.add(cxn);
         socket.handler(cxn::handleMessage);
+        socket.closeHandler(cxn::onClose);
     }
 }

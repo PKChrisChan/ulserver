@@ -4,6 +4,7 @@ import io.baschel.ulserver.game.PlayerRecord;
 import io.baschel.ulserver.msgs.InternalServerMessage;
 import io.baschel.ulserver.msgs.db.*;
 import io.baschel.ulserver.msgs.internal.InternalMessageHandler;
+import io.baschel.ulserver.msgs.lyra.InventoryItem;
 import io.baschel.ulserver.msgs.lyra.LmArts;
 import io.baschel.ulserver.msgs.lyra.LmItem;
 import io.baschel.ulserver.msgs.lyra.LmStats;
@@ -64,7 +65,7 @@ public class PlayerRecordRequestHandler implements InternalMessageHandler {
         record.stats.xp = row.getInteger("xp");
         record.stats.orbit = LmStats.OrbitFromXP(record.stats.xp);
         record.stats.focus = record.focus.toValue();
-        record.acctType = LyraConsts.AcctType.fromValue(row.getInteger("acct_type"));
+        record.acctType = LyraConsts.AcctType.fromValue(row.getInteger("acct_type")).toValue();
         record.billingId = row.getInteger("billing_id");
         record.description = row.getString("avatar_descrip");
         record.xpBonus = row.getInteger("xp_bonus");
@@ -237,7 +238,7 @@ public class PlayerRecordRequestHandler implements InternalMessageHandler {
            }
            else {
                JsonArray items = (JsonArray)reply.result().body();
-               List<LmItem> inventory = (List<LmItem>)items.getList().stream().map(o -> Json.objectFromJsonObject((JsonObject)o, LmItem.class)).collect(Collectors.toList());
+               List<InventoryItem> inventory = (List<InventoryItem>)items.getList().stream().map(o -> Json.objectFromJsonObject((JsonObject)o, InventoryItem.class)).collect(Collectors.toList());
                rec.inventory = inventory;
                req.gotItems = true;
                checkComplete(req, rec, msg);

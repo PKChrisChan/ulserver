@@ -15,7 +15,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
     @JsonSubTypes.Type(value=GMsg_Login.class, name="GMsg_Login"),
     @JsonSubTypes.Type(value=GMsg_Ping.class, name="GMsg_Ping"),
     @JsonSubTypes.Type(value=GMsg_LoginAck.class, name="GMsg_LoginAck"),
-    @JsonSubTypes.Type(value=RMsg_Speech.class, name="RMsg_Speech")
+    @JsonSubTypes.Type(value=RMsg_Speech.class, name="RMsg_Speech"),
+    @JsonSubTypes.Type(value=InventoryItem.class, name="InventoryItem")
 })
 public interface LyraMessage {
 }

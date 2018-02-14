@@ -28,6 +28,16 @@ public class PlayerSet {
         doIndex(field);
     }
 
+    public Set<PlayerRecord> getPlayers(String field, Object value)
+    {
+        Map<Object, Set<PlayerRecord>> index = playerRecordIndices.get(field);
+        if(index == null)
+            throw new RuntimeException("No index created for field " + field);
+
+        Set<PlayerRecord> entries = index.get(value);
+        return entries;
+    }
+
     private Member getMember(String field)
     {
         return memberMap.computeIfAbsent(field, f -> {
@@ -99,6 +109,7 @@ public class PlayerSet {
     {
         if(loggedInPlayers.contains(rec))
             return;
+        loggedInPlayers.add(rec);
         indexRecord(rec);
     }
 
@@ -107,17 +118,27 @@ public class PlayerSet {
         if(!loggedInPlayers.remove(rec))
             return;
         playerRecordIndices.keySet().forEach(key -> {
-            Object o = getMemberValue(key);
+            Object o = getMemberValue(key).apply(rec);
             if(o == null) {
                 L.error("Can't get memberValue for {} not removing {} from index", key, rec.pid);
                 return;
             }
+
             Set<PlayerRecord> playerSet = playerRecordIndices.get(key).get(o);
-            if(playerSet != null)
+            if(playerSet != null) {
                 playerSet.remove(rec);
-            // TODO MDA: Necessary?
-            if(playerSet.size() == 0)
-                playerRecordIndices.get(key).remove(o);
+                // TODO MDA: Necessary?
+                if (playerSet.size() == 0)
+                    playerRecordIndices.get(key).remove(o);
+            } else {
+                L.error("Attempting to locate {} for {} - not found. Got {}", key, rec.pid, o);
+            }
         });
+    }
+
+    public void reindexPlayer(PlayerRecord rec)
+    {
+        removePlayer(rec);
+        addPlayer(rec);
     }
 }

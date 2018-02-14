@@ -7,6 +7,7 @@ import io.baschel.ulserver.config.MasterConfig;
 import io.baschel.ulserver.db.DbVerticle;
 import io.baschel.ulserver.game.GameVerticle;
 import io.baschel.ulserver.msgs.db.PlayerRecordRequest;
+import io.baschel.ulserver.msgs.lyra.InventoryItem;
 import io.baschel.ulserver.net.NetVerticle;
 import io.baschel.ulserver.util.Json;
 import io.vertx.core.Vertx;

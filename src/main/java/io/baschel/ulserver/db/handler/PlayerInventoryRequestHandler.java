@@ -4,6 +4,7 @@ import io.baschel.ulserver.msgs.InternalServerMessage;
 import io.baschel.ulserver.msgs.db.PlayerArtsRequest;
 import io.baschel.ulserver.msgs.db.PlayerInventoryRequest;
 import io.baschel.ulserver.msgs.internal.InternalMessageHandler;
+import io.baschel.ulserver.msgs.lyra.InventoryItem;
 import io.baschel.ulserver.msgs.lyra.LmArts;
 import io.baschel.ulserver.msgs.lyra.LmItem;
 import io.baschel.ulserver.msgs.lyra.LmItemHdr;
@@ -51,26 +52,33 @@ public class PlayerInventoryRequestHandler implements InternalMessageHandler {
             }
             else {
                 conn.close();
-                List<LmItem> inventory = new ArrayList<>();
+                List<InventoryItem> inventory = new ArrayList<>();
                 for(int i = 0; i < res.result().getNumRows(); i++)
                     inventory.add(null);
 
-                List<LmItem> bad = new ArrayList<>();
+                List<InventoryItem> bad = new ArrayList<>();
                 res.result().getRows().forEach(jsonObj -> {
                     // Item positions start with 1. Un-fucking-believable.
                     int pos = jsonObj.getInteger("x") - 1;
                     LmItem item = itemFromDbRow(jsonObj);
-                    if(pos >= inventory.size() || pos < 0)
-                        bad.add(item);
-                    inventory.set(pos, item);
+                    InventoryItem ii = new InventoryItem();
+                    ii.item = item;
+                    ii.setPosAndFlags(pos + 1);
+                    if(ii.pos > inventory.size() || ii.pos < 1) {
+                        ii.setPosAndFlags(0);
+                        bad.add(ii);
+                    } else
+                        inventory.set(pos, ii);
                 });
 
                 if(bad.size() > 0)
                 {
                     int b = 0;
                     for(int i = 0; i < inventory.size(); i++)
-                        if(inventory.get(i) == null)
+                        if(inventory.get(i) == null) {
+                            bad.get(b).setPosAndFlags(i);
                             inventory.set(i, bad.get(b++));
+                        }
                 }
 
                 sourceMessage.reply(new JsonArray(inventory.stream().map(it -> Json.objectToJsonObject(it)).collect(Collectors.toList())));

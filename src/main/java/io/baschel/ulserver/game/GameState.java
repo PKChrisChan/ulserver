@@ -27,9 +27,9 @@ public interface GameState {
     /**
      * Sends a message to the specified pid. If player isn't present in our set of connections nothing is sent.
      * @param message the message to send, in Lyra form.
-     * @param playerId the pid of the player.
+     * @param record the record of the player.
      */
-    void sendToPlayer(LyraMessage message, int playerId);
+    void sendToPlayer(LyraMessage message, PlayerRecord record);
 
     /**
      * Broadcasts a message to the room. The LevelRoomId is specified in L##R## format, e.g.
@@ -51,4 +51,16 @@ public interface GameState {
      * @param message
      */
     void sendToGame(LyraMessage message);
+
+    /**
+     * Log player in.
+     * @param record
+     */
+    void login(PlayerRecord record);
+
+    /**
+     * log player out.
+     * @param record
+     */
+    void logout(PlayerRecord record);
 }
