@@ -2,7 +2,6 @@ package io.baschel.ulserver.game.handler;
 
 import io.baschel.ulserver.Main;
 import io.baschel.ulserver.game.GameState;
-import io.baschel.ulserver.game.MessageHandler;
 import io.baschel.ulserver.game.PlayerRecord;
 import io.baschel.ulserver.msgs.MessageUtils;
 import io.baschel.ulserver.msgs.db.PlayerRecordRequest;
@@ -12,7 +11,6 @@ import io.baschel.ulserver.util.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import sun.plugin2.message.Message;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -25,7 +23,7 @@ import static io.baschel.ulserver.msgs.lyra.consts.LyraConsts.GM_DELTA;
 import static io.baschel.ulserver.msgs.lyra.consts.LyraConsts.LoginStatus.*;
 import static io.baschel.ulserver.msgs.lyra.consts.LyraConsts.PMARE_DELTA;
 
-public class LoginProcedureHandler implements MessageHandler {
+public class LoginProcedureHandler extends GameMessageHandler {
     static Set<Class<? extends LyraMessage>> handleSet = new HashSet<>();
     private static final Logger L = LoggerFactory.getLogger(LoginProcedureHandler.class);
     private Map<String, String> pendingConnectionChallengeMap = new HashMap<>();
@@ -34,11 +32,9 @@ public class LoginProcedureHandler implements MessageHandler {
         handleSet.add(GMsg_Login.class);
     }
 
-    private GameState gs;
-
     public LoginProcedureHandler(GameState gs)
     {
-        this.gs = gs;
+        super(gs);
     }
 
     @Override
@@ -220,7 +216,10 @@ public class LoginProcedureHandler implements MessageHandler {
         StringBuffer buf = new StringBuffer();
         for(int i = 0; i < 3; i++)
             buf.append(UUID.randomUUID().toString().replaceAll("-", ""));
-        pendingConnectionChallengeMap.put(source, buf.toString());
+
+        //pendingConnectionChallengeMap.put(source, buf.toString());
+        pendingConnectionChallengeMap.put(source,
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbc");
     }
 
     @Override

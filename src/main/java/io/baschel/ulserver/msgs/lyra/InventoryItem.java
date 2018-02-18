@@ -4,8 +4,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * Item that belongs to a player inventory.
+ * Not really a Lyra type. Just a wrapper for my sanity.
  */
-public class InventoryItem implements LyraMessage {
+public class InventoryItem {
     public LmItem item;
     public int pos; // Position in the items list
     public int flags; // 1 means identified, 2 means active shield

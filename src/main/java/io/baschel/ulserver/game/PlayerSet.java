@@ -85,7 +85,7 @@ public class PlayerSet {
         return p->null;
     }
 
-    private void indexRecord(PlayerRecord p, String field){
+    private void indexRecord(PlayerRecord p, String field) {
         Object o = getMemberValue(field).apply(p);
         if(o == null) {
             L.error("Not indexing {}", p.pid);
@@ -93,6 +93,29 @@ public class PlayerSet {
         }
         playerRecordIndices.get(field).computeIfAbsent(o, k -> new HashSet<>());
         playerRecordIndices.get(field).get(o).add(p);
+    }
+
+    private void removeRecord(PlayerRecord p, String field) {
+        Object o = getMemberValue(field).apply(p);
+        removeRecord(p, field, o);
+    }
+
+    private void removeRecord(PlayerRecord p, String field, Object o)
+    {
+        if(o == null) {
+            L.error("Can't get memberValue for {} not removing {} from index", field, p.pid);
+            return;
+        }
+
+        Set<PlayerRecord> playerSet = playerRecordIndices.get(field).get(o);
+        if(playerSet != null) {
+            playerSet.remove(p);
+            // TODO MDA: Necessary?
+            if (playerSet.size() == 0)
+                playerRecordIndices.get(field).remove(o);
+        } else {
+            L.error("Attempting to locate {} for {} - not found. Got {}", field, p.pid, o);
+        }
     }
 
     private void indexRecord(PlayerRecord p)
@@ -118,21 +141,7 @@ public class PlayerSet {
         if(!loggedInPlayers.remove(rec))
             return;
         playerRecordIndices.keySet().forEach(key -> {
-            Object o = getMemberValue(key).apply(rec);
-            if(o == null) {
-                L.error("Can't get memberValue for {} not removing {} from index", key, rec.pid);
-                return;
-            }
-
-            Set<PlayerRecord> playerSet = playerRecordIndices.get(key).get(o);
-            if(playerSet != null) {
-                playerSet.remove(rec);
-                // TODO MDA: Necessary?
-                if (playerSet.size() == 0)
-                    playerRecordIndices.get(key).remove(o);
-            } else {
-                L.error("Attempting to locate {} for {} - not found. Got {}", key, rec.pid, o);
-            }
+            removeRecord(rec, key);
         });
     }
 
@@ -140,5 +149,14 @@ public class PlayerSet {
     {
         removePlayer(rec);
         addPlayer(rec);
+    }
+
+    public void reindexSingleField(String field, Object oldVal, PlayerRecord rec)
+    {
+        Object newVal = getMemberValue(field).apply(rec);
+        if(newVal == oldVal)
+            return;
+        removeRecord(rec, field, oldVal);
+        indexRecord(rec, field);
     }
 }

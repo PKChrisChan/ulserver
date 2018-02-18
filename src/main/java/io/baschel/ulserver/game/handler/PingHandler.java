@@ -1,5 +1,6 @@
 package io.baschel.ulserver.game.handler;
 
+import io.baschel.ulserver.game.GameState;
 import io.baschel.ulserver.game.MessageHandler;
 import io.baschel.ulserver.msgs.MessageUtils;
 import io.baschel.ulserver.msgs.lyra.GMsg_Ping;
@@ -11,8 +12,13 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-public class PingHandler implements MessageHandler {
+public class PingHandler extends GameMessageHandler {
     private static final Logger L = LoggerFactory.getLogger(PingHandler.class);
+
+    public PingHandler(GameState gs) {
+        super(gs);
+    }
+
     @Override
     public void handle(String source, LyraMessage message) {
         if(message instanceof GMsg_Ping)

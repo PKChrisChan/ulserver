@@ -1,5 +1,7 @@
 {
   "port": 7500,
   "env": "dev",
-  "gameVersion": 17011
+  "gameVersion": 17011,
+  "checkPasswords": false,
+  "motd": "ULServer2.0: Jiovanni kissed a girl and he liked it."
 }

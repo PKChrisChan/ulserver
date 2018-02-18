@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import io.vertx.core.net.NetServerOptions;
 import io.vertx.core.net.NetSocket;
 
 /**
@@ -32,7 +33,8 @@ public class NetVerticle extends AbstractVerticle {
     public void start()
     {
         int port = Main.config.serverConfig.port;
-        tcpServer = vertx.createNetServer();
+        NetServerOptions opts = new NetServerOptions().setTcpNoDelay(false).setTcpKeepAlive(true);
+        tcpServer = vertx.createNetServer(opts);
 
         tcpServer.connectHandler(this::handleConnection);
 

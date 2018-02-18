@@ -1,5 +1,6 @@
 package io.baschel.ulserver.game;
 
+import io.baschel.ulserver.game.handler.LocationChangeHandler;
 import io.baschel.ulserver.game.handler.LoginProcedureHandler;
 import io.baschel.ulserver.game.handler.PingHandler;
 import io.baschel.ulserver.msgs.lyra.LyraMessage;
@@ -24,7 +25,8 @@ public class MessageRouter
     public void registerHandlers()
     {
         addHandler(new LoginProcedureHandler(gameState));
-        addHandler(new PingHandler());
+        addHandler(new PingHandler(gameState));
+        addHandler(new LocationChangeHandler(gameState));
     }
 
     private void addHandler(MessageHandler handler) {

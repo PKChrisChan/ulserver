@@ -2,19 +2,15 @@ package io.baschel.ulserver.game;
 
 import io.baschel.ulserver.msgs.lyra.LyraMessage;
 
+import java.util.Set;
+
 public interface GameState {
     /**
      * Given an account id returns if any accts are logged in for it.
      */
     boolean isAccountLoggedIn(int acctId);
 
-    /**
-     * Returns the pid for the connection id if the player has completed logging in.
-     * Returns null if no pid is found.
-     * @param connectionId the socket address
-     * @return the pid or -1 if not present
-     */
-    int playerIdForConnectionId(String connectionId);
+    PlayerRecord playerRecordForConnectionId(String connectionId);
 
     /**
      * Returns the PlayerRecord given the playerId or null if no playerRecord is found.
@@ -24,6 +20,13 @@ public interface GameState {
      */
     PlayerRecord getPlayerRecord(int playerId);
 
+    /**
+     * Returns set of players in a room.
+     * @param locationId
+     * @return
+     */
+    Set<PlayerRecord> roomPlayers(String locationId);
+    
     /**
      * Sends a message to the specified pid. If player isn't present in our set of connections nothing is sent.
      * @param message the message to send, in Lyra form.
@@ -37,7 +40,7 @@ public interface GameState {
      * @param message
      * @param levelRoomId
      */
-    void sendToRoom(LyraMessage message, String levelRoomId);
+    void sendToRoom(LyraMessage message, String levelRoomId, PlayerRecord record);
 
     /**
      * Sends a message to the level. LevelID is specified in L## format, i.e. L20.
@@ -51,6 +54,14 @@ public interface GameState {
      * @param message
      */
     void sendToGame(LyraMessage message);
+
+    /**
+     * Moves the player to a new level/room
+     * @param player
+     * @param level
+     * @param room
+     */
+    void movePlayer(PlayerRecord player, int level, int room);
 
     /**
      * Log player in.

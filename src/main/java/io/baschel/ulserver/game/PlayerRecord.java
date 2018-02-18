@@ -1,5 +1,6 @@
 package io.baschel.ulserver.game;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.baschel.ulserver.msgs.lyra.*;
 import io.baschel.ulserver.msgs.lyra.consts.LyraConsts;
 
@@ -42,24 +43,31 @@ public class PlayerRecord {
     // These are used at login only
     public int xpBonus;
     public int xpPenalty;
-
+    public int timeOnline; // in seconds
     // Pmares only
     public int pmareSessionStart;
     public int pmareBillingType;
+    public LmPeerUpdate lastUpdate;
 
     public String upperName()
     {
         return name.toUpperCase();
     }
 
+    @JsonIgnore
+    public boolean isNewlyAwakened()
+    {
+        return stats.xp < 10000 && timeOnline < (60 * 60 * 2);
+    }
+
     public String locationId()
     {
-        StringBuffer sb = new StringBuffer();
-        if(level != 0) {
-            sb.append('L' + Integer.toString(level));
-            sb.append('R' + Integer.toString(room));
-        }
-        return sb.toString();
+        return String.format("L%02dR%02d", level, room);
+    }
+
+    public String levelId()
+    {
+        return 'L' + Integer.toString(level);
     }
 
     @Override
@@ -83,5 +91,15 @@ public class PlayerRecord {
         result = 31 * result + pid;
         result = 31 * result + upperName().hashCode();
         return result;
+    }
+
+    public RmRemotePlayer remotePlayer()
+    {
+        RmRemotePlayer rp = new RmRemotePlayer();
+        rp.avatar = avatar;
+        rp.playername = name;
+        rp.room = room;
+        rp.update = lastUpdate;
+        return rp;
     }
 }

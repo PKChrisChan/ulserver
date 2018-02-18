@@ -73,7 +73,7 @@ public class PlayerRecordRequestHandler implements InternalMessageHandler {
         String suspendedDate = row.getString("suspended_date");
         if(suspendedDate != null)
             record.suspendedDate = LocalDate.from(DateTimeFormatter.ISO_LOCAL_DATE.parse(suspendedDate));
-
+        record.timeOnline = row.getInteger("time_online");
         record.pmareSessionStart = row.getInteger("pmare_session_start");
         record.pmareBillingType = row.getInteger("pmare_billing_type");
         record.stats.pps = row.getInteger("pps");
@@ -93,7 +93,7 @@ public class PlayerRecordRequestHandler implements InternalMessageHandler {
         JsonArray params = new JsonArray().add(recordRequest.byId() ? recordRequest.id() : recordRequest.uname());
         conn.queryWithParams("select player_id,player_name,password,focus_stat,avatar,avatar2,xp," +
                 "acct_type,billing_id,xp_bonus,xp_penalty,avatar_descrip,suspended_date,pmare_session_start,pmare_billing_type,quest_xp_pool," +
-                "pps,pp_pool,last_logout from player " + whereClause, params, res -> {
+                "pps,pp_pool,last_logout,time_online from player " + whereClause, params, res -> {
             conn.close();
             if(res.failed()) {
                 L.error("Failed to retrieve player record for {}", res.cause(), params.encode());

@@ -1,5 +1,6 @@
 package io.baschel.ulserver.db;
 
+import io.baschel.ulserver.db.handler.LevelListHandler;
 import io.baschel.ulserver.db.handler.PlayerArtsRequestHandler;
 import io.baschel.ulserver.db.handler.PlayerInventoryRequestHandler;
 import io.baschel.ulserver.db.handler.PlayerRecordRequestHandler;
@@ -28,6 +29,7 @@ public class DbMessageRouter {
     {
         addHandler(new PlayerRecordRequestHandler(dbClients.get("ul_player")));
         addHandler(new PlayerArtsRequestHandler(dbClients.get("ul_player")));
+        addHandler(new LevelListHandler(dbClients.get("ul_level")));
         addHandler(new PlayerInventoryRequestHandler(dbClients.get("ul_item")));
     }
 

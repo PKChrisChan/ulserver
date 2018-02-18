@@ -83,7 +83,7 @@ public class ClientConnection {
                     return;
                 JsonObject contents = readMessageContents(mh);
                 publishParsedMessage(contents);
-                pending = pending.slice(HEADER_LEN + mh.size, pending.length());
+                pending = pending.slice(HEADER_LEN + mh.size, pending.length()).copy();
             }
         }
 
