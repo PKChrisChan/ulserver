@@ -9,7 +9,7 @@ import io.baschel.ulserver.game.GameVerticle;
 import io.baschel.ulserver.game.RoomVerticle;
 import io.baschel.ulserver.msgs.db.AllLevelsRequest;
 import io.baschel.ulserver.msgs.db.PlayerRecordRequest;
-import io.baschel.ulserver.msgs.lyra.InventoryItem;
+import io.baschel.ulserver.msgs.internal.LoggedInPlayersRequest;
 import io.baschel.ulserver.net.NetVerticle;
 import io.baschel.ulserver.util.Json;
 import io.vertx.core.DeploymentOptions;
@@ -19,8 +19,6 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
-import io.vertx.core.shareddata.LocalMap;
-import io.vertx.core.shareddata.SharedData;
 import io.vertx.ext.web.Router;
 
 import java.io.File;
@@ -28,6 +26,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 public class Main {
+    public static final String GLOBAL = "Server.Global";
     public static Vertx vertx;
     public static MasterConfig config;
     private static final Logger L = LoggerFactory.getLogger(Main.class);
@@ -79,6 +78,26 @@ public class Main {
                     ctx.response().setStatusCode(500).setStatusMessage(reply.toString()).end(reply.cause().toString());
                 } else {
                     ctx.response().setStatusCode(200).end(((JsonObject)reply.result().body()).encodePrettily());
+                }
+            });
+        });
+        router.get("/playersOnline").handler(ctx -> {
+            new LoggedInPlayersRequest(LoggedInPlayersRequest.LoggedInRequestType.GAME).send(reply -> {
+                if(reply.failed()) {
+                    ctx.response().setStatusCode(500).setStatusMessage(reply.toString()).end(reply.cause().toString());
+                } else {
+                    ctx.response().setStatusCode(200).end(((JsonArray)reply.result().body()).encodePrettily());
+                }
+            });
+        });
+        router.get("/playersInLocation/:levelId/:roomId").handler(ctx -> {
+            String lid = ctx.request().getParam("levelId");
+            String rid = ctx.request().getParam("roomId");
+            new LoggedInPlayersRequest(LoggedInPlayersRequest.LoggedInRequestType.ROOM, Integer.parseInt(lid), Integer.parseInt(rid)).send(reply -> {
+                if(reply.failed()) {
+                    ctx.response().setStatusCode(500).setStatusMessage(reply.toString()).end(reply.cause().toString());
+                } else {
+                    ctx.response().setStatusCode(200).end(((JsonArray)reply.result().body()).encodePrettily());
                 }
             });
         });

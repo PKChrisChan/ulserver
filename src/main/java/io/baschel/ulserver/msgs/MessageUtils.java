@@ -10,8 +10,6 @@ import io.vertx.core.logging.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 
-import static io.baschel.ulserver.net.ClientConnection.HEADER_LEN;
-
 public class MessageUtils {
     private static Logger L = LoggerFactory.getLogger(MessageUtils.class);
     public static final int JSON_TYPE = 2057;
@@ -41,5 +39,15 @@ public class MessageUtils {
         byte b = 0;
         buf.appendByte(b);
         Main.vertx.eventBus().send(source, buf);
+    }
+
+    public static void sendRawMessage(String source, LyraMessage message, int type)
+    {
+        Buffer msg = Buffer.buffer();
+        Buffer content = message.asBinary();
+        msg.appendUnsignedShort(type);
+        msg.appendUnsignedShort(content.length());
+        msg.appendBuffer(content);
+        Main.vertx.eventBus().send(source, msg);
     }
 }

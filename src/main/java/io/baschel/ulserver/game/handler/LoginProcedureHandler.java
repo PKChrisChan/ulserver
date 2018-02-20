@@ -148,10 +148,9 @@ public class LoginProcedureHandler extends GameMessageHandler {
     private boolean checkPassword(PlayerRecord record, String hash) throws NoSuchAlgorithmException {
         String challenge = pendingConnectionChallengeMap.get(record.connectionId);
         MessageDigest md = MessageDigest.getInstance("MD5");
-        byte[] bytes = challenge.getBytes();
-        bytes[95] = 0;
+        byte[] bytes = challenge.substring(0, 95).getBytes();
         md.update(bytes);
-        md.update(Arrays.copyOf(record.password.getBytes(), record.password.length() + 1));
+        md.update(record.password.getBytes());
         byte[] mdbytes = md.digest();
 
         //convert the byte to hex format method
@@ -217,9 +216,7 @@ public class LoginProcedureHandler extends GameMessageHandler {
         for(int i = 0; i < 3; i++)
             buf.append(UUID.randomUUID().toString().replaceAll("-", ""));
 
-        //pendingConnectionChallengeMap.put(source, buf.toString());
-        pendingConnectionChallengeMap.put(source,
-                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbc");
+        pendingConnectionChallengeMap.put(source, buf.toString());
     }
 
     @Override

@@ -27,6 +27,11 @@ public interface InternalServerMessage {
         Main.vertx.eventBus().send(address(), Json.objectToJsonObject(this), reply);
     }
 
+    default <T> void publish()
+    {
+        Main.vertx.eventBus().publish(address(), Json.objectToJsonObject(this));
+    }
+
     @JsonIgnore
     String address();
 }

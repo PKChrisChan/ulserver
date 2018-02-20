@@ -4,22 +4,24 @@ import io.baschel.ulserver.Main;
 import io.baschel.ulserver.msgs.InternalServerMessage;
 import io.baschel.ulserver.msgs.MessageUtils;
 import io.baschel.ulserver.msgs.internal.DisconnectClient;
+import io.baschel.ulserver.msgs.internal.LoggedInPlayersRequest;
 import io.baschel.ulserver.msgs.internal.PlayerEnterRoom;
 import io.baschel.ulserver.msgs.internal.PlayerLeaveRoom;
 import io.baschel.ulserver.msgs.lyra.LyraMessage;
 import io.baschel.ulserver.msgs.lyra.RMsg_Speech;
 import io.baschel.ulserver.util.Json;
-import io.vertx.core.AbstractVerticle;
 import io.vertx.core.eventbus.Message;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static io.baschel.ulserver.msgs.lyra.consts.LyraConsts.Speech.SERVER_TEXT;
 
-public class GameVerticle extends AbstractVerticle implements GameState {
+public class GameVerticle extends AbstractServerVerticle implements GameState {
     public static final String EVENTBUS_ADDRESS = GameVerticle.class.getName();
     public static final String INTERNAL_MESSAGE_ADDRESS = EVENTBUS_ADDRESS + ".internal";
     public static final Logger L = LoggerFactory.getLogger(GameVerticle.class.getName());
@@ -29,6 +31,7 @@ public class GameVerticle extends AbstractVerticle implements GameState {
     @Override
     public void start()
     {
+        super.start();
         playerSet.addIndex("pid");
         playerSet.addIndex("upperName");
         playerSet.addIndex("billingId");
@@ -39,9 +42,8 @@ public class GameVerticle extends AbstractVerticle implements GameState {
         vertx.eventBus().consumer(INTERNAL_MESSAGE_ADDRESS, this::handleInternalMessage);
     }
 
-    private void handleInternalMessage(Message<JsonObject> msg) {
-        JsonObject m = msg.body();
-        InternalServerMessage ism = Json.objectFromJsonObject(m, InternalServerMessage.class);
+    @Override
+    public void handleServerGlobalMessage(InternalServerMessage ism) {
         if(ism instanceof DisconnectClient)
         {
             DisconnectClient dc = (DisconnectClient)ism;
@@ -49,6 +51,15 @@ public class GameVerticle extends AbstractVerticle implements GameState {
             Set<PlayerRecord> rec = playerSet.getPlayers("connectionId", dc.getClientId());
             if(rec != null)
                 rec.forEach(this::logout);
+        }
+    }
+
+    private void handleInternalMessage(Message<JsonObject> msg) {
+        JsonObject m = msg.body();
+        InternalServerMessage ism = Json.objectFromJsonObject(m, InternalServerMessage.class);
+        if(ism instanceof LoggedInPlayersRequest)
+        {
+            msg.reply(new JsonArray(playerSet.getAllPlayers().stream().map(p->Json.objectToJsonObject(p)).collect(Collectors.toList())));
         }
     }
 
@@ -155,5 +166,6 @@ public class GameVerticle extends AbstractVerticle implements GameState {
     @Override
     public void logout(PlayerRecord record) {
         playerSet.removePlayer(record);
+
     }
 }

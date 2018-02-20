@@ -34,7 +34,7 @@ public class PlayerSet {
         if(index == null)
             throw new RuntimeException("No index created for field " + field);
 
-        Set<PlayerRecord> entries = index.get(value);
+        Set<PlayerRecord> entries = index.getOrDefault(value, new HashSet<>());
         return entries;
     }
 
@@ -158,5 +158,10 @@ public class PlayerSet {
             return;
         removeRecord(rec, field, oldVal);
         indexRecord(rec, field);
+    }
+
+    public Set<PlayerRecord> getAllPlayers()
+    {
+        return loggedInPlayers;
     }
 }
