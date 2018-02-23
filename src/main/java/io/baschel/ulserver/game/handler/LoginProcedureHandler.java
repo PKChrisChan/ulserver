@@ -2,7 +2,7 @@ package io.baschel.ulserver.game.handler;
 
 import io.baschel.ulserver.Main;
 import io.baschel.ulserver.game.GameState;
-import io.baschel.ulserver.game.PlayerRecord;
+import io.baschel.ulserver.game.state.GamePlayerRecord;
 import io.baschel.ulserver.msgs.MessageUtils;
 import io.baschel.ulserver.msgs.db.PlayerRecordRequest;
 import io.baschel.ulserver.msgs.lyra.*;
@@ -103,7 +103,7 @@ public class LoginProcedureHandler extends GameMessageHandler {
                 return;
             }
             else {
-                PlayerRecord record = Json.objectFromJsonObject((JsonObject)result.result().body(), PlayerRecord.class);
+                GamePlayerRecord record = Json.objectFromJsonObject((JsonObject)result.result().body(), GamePlayerRecord.class);
                 record.connectionId = source;
                 if(!checkAccount(record, response, gmBuild.get(), pmareBuild.get()))
                 {
@@ -145,7 +145,7 @@ public class LoginProcedureHandler extends GameMessageHandler {
         });
     }
 
-    private boolean checkPassword(PlayerRecord record, String hash) throws NoSuchAlgorithmException {
+    private boolean checkPassword(GamePlayerRecord record, String hash) throws NoSuchAlgorithmException {
         String challenge = pendingConnectionChallengeMap.get(record.connectionId);
         MessageDigest md = MessageDigest.getInstance("MD5");
         byte[] bytes = challenge.substring(0, 95).getBytes();
@@ -162,7 +162,7 @@ public class LoginProcedureHandler extends GameMessageHandler {
         return sb.toString().toUpperCase().equals(hash);
     }
 
-    private boolean checkAccount(PlayerRecord record, GMsg_LoginAck response, boolean gmBuild, boolean pmareBuild) {
+    private boolean checkAccount(GamePlayerRecord record, GMsg_LoginAck response, boolean gmBuild, boolean pmareBuild) {
         boolean ok = true;
         if(record.acctType == LyraConsts.AcctType.ACCT_ADMIN_EXPIRED.toValue() ||
                 record.acctType == LyraConsts.AcctType.ACCT_PLAYER_EXPIRED.toValue())

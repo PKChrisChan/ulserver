@@ -5,9 +5,7 @@ import io.baschel.ulserver.msgs.lyra.consts.LyraConsts;
 import java.util.ArrayList;
 import java.util.List;
 
-import static io.baschel.ulserver.msgs.lyra.consts.LyraConsts.NUM_GUILDS;
-import static io.baschel.ulserver.msgs.lyra.consts.LyraConsts.NUM_PLAYER_STATS;
-import static io.baschel.ulserver.msgs.lyra.consts.LyraConsts.XP_PER_ORBIT;
+import static io.baschel.ulserver.msgs.lyra.consts.LyraConsts.*;
 
 public class LmStats {
     public int focus;
@@ -41,7 +39,7 @@ public class LmStats {
             if (sphereXp > xp)
                 break;
         }
-        return (entry.sphere * 10) + orb ;
+        return Math.min((entry.sphere * 10) + orb, 99);
     }
 
     public LmStats()

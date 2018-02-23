@@ -1,7 +1,7 @@
 package io.baschel.ulserver.game.handler;
 
 import io.baschel.ulserver.game.GameState;
-import io.baschel.ulserver.game.PlayerRecord;
+import io.baschel.ulserver.game.state.GamePlayerRecord;
 import io.baschel.ulserver.msgs.MessageUtils;
 import io.baschel.ulserver.msgs.lyra.GMsg_GotoLevel;
 import io.baschel.ulserver.msgs.lyra.LyraMessage;
@@ -32,13 +32,13 @@ public class LocationChangeHandler extends GameMessageHandler {
 
     private void _handle(String source, RMsg_GotoRoom message)
     {
-        PlayerRecord record = gs.playerRecordForConnectionId(source);
+        GamePlayerRecord record = gs.playerRecordForConnectionId(source);
         gs.movePlayer(record, record.level, message.roomid);
     }
 
     private void _handle(String source, GMsg_GotoLevel message) {
         // TODO MDA: Check if player is allowed to move to this room.
-        PlayerRecord record = gs.playerRecordForConnectionId(source);
+        GamePlayerRecord record = gs.playerRecordForConnectionId(source);
         RMsg_LoginAck la = new RMsg_LoginAck();
         if(record == null) {
             L.warn("Connection ID {} not found in playerSet?", source);

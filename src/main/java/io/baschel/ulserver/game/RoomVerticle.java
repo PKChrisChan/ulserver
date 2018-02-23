@@ -1,5 +1,9 @@
 package io.baschel.ulserver.game;
 
+import io.baschel.ulserver.game.state.AbstractPlayerRecord;
+import io.baschel.ulserver.game.state.GamePlayerRecord;
+import io.baschel.ulserver.game.state.PlayerSet;
+import io.baschel.ulserver.game.state.RoomPlayerRecord;
 import io.baschel.ulserver.msgs.InternalServerMessage;
 import io.baschel.ulserver.msgs.MessageUtils;
 import io.baschel.ulserver.msgs.internal.DisconnectClient;
@@ -27,7 +31,7 @@ public class RoomVerticle extends AbstractServerVerticle {
     public int room;
     public PlayerSet players;
     private static final Logger L = LoggerFactory.getLogger(RoomVerticle.class);
-    Set<PlayerRecord> playersWithPendingUpdates = new HashSet<>();
+    Set<AbstractPlayerRecord> playersWithPendingUpdates = new HashSet<>();
     public static String eventBusAddress(int level, int room)
     {
         return RoomVerticle.class.getName() + String.format(".L%02dR%02d", level, room);
@@ -74,7 +78,7 @@ public class RoomVerticle extends AbstractServerVerticle {
     private void onTimer(Long aLong) {
         if(playersWithPendingUpdates.size() > 0)
         {
-            for(PlayerRecord p : players.getAllPlayers())
+            for(AbstractPlayerRecord p : players.getAllPlayers())
             {
                 List<LmPeerUpdate> upsForPlayer = playersWithPendingUpdates.stream().filter(u -> u.pid != p.pid).map(o->o.lastUpdate)
                         .collect(Collectors.toList());
@@ -89,7 +93,7 @@ public class RoomVerticle extends AbstractServerVerticle {
 
     private void handlePosUpdate(Message<Buffer> update) {
         RMsg_Update up = new RMsg_Update().initFromBinary(update.body());
-        PlayerRecord rec = players.getPlayers("pid", up.update.playerid).toArray(new PlayerRecord[] {})[0];
+        GamePlayerRecord rec = players.getPlayers("pid", up.update.playerid).toArray(new GamePlayerRecord[] {})[0];
         if(!rec.lastUpdate.equals(up.update)) {
             rec.lastUpdate = up.update;
             playersWithPendingUpdates.add(rec);
@@ -115,11 +119,11 @@ public class RoomVerticle extends AbstractServerVerticle {
 
     private void _handle(PlayerLeaveRoom leave, Message<JsonObject>msg)
     {
-        PlayerRecord leaver = leave.record;
+        AbstractPlayerRecord leaver = leave.record;
         leaveRoom(leaver);
     }
 
-    private void leaveRoom(PlayerRecord leaver)
+    private void leaveRoom(AbstractPlayerRecord leaver)
     {
         players.removePlayer(leaver);
         RMsg_LeaveRoom leaverm = new RMsg_LeaveRoom();
@@ -132,11 +136,12 @@ public class RoomVerticle extends AbstractServerVerticle {
 
     private void _handle(PlayerEnterRoom enter, Message<JsonObject> msg) {
         RMsg_EnterRoom myEntry = new RMsg_EnterRoom();
-        myEntry.players.add(enter.record.remotePlayer());
+        RoomPlayerRecord rpr = (RoomPlayerRecord)enter.record;
+        myEntry.players.add(rpr.remotePlayer(room));
         sendToRoom(myEntry, enter.record);
         RMsg_EnterRoom others = new RMsg_EnterRoom();
-        for(PlayerRecord p : players.getAllPlayers())
-            others.players.add(p.remotePlayer());
+        for(AbstractPlayerRecord p : players.getAllPlayers())
+            others.players.add(((RoomPlayerRecord)p).remotePlayer(room));
         RMsg_RoomLoginAck rla = new RMsg_RoomLoginAck();
         rla.status = LyraConsts.RoomLogin.LOGIN_OK;
         rla.num_neighbors = players.getAllPlayers().size();
@@ -146,8 +151,8 @@ public class RoomVerticle extends AbstractServerVerticle {
         MessageUtils.sendJsonMessage(enter.record.connectionId, rla);
     }
 
-    private void sendToRoom(LyraMessage msg, PlayerRecord recordToIgnore) {
-        for(PlayerRecord p : players.getAllPlayers())
+    private void sendToRoom(LyraMessage msg, AbstractPlayerRecord recordToIgnore) {
+        for(AbstractPlayerRecord p : players.getAllPlayers())
         {
             if(recordToIgnore != null && p.equals(recordToIgnore))
                 continue;

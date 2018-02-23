@@ -224,4 +224,13 @@ public final class LyraConsts {
             LOGIN_ROOMNOTFOUND   = 'R',
             LOGIN_SERVERDOWN     = 'S';
     }
+
+    public static final class StatChangeTypes {
+        public static final int
+            // request type    dir   stat  value    result
+            SET_XP = 1,     // SC    N/A   XP       set XP
+            SET_STAT_CURR = 2,  // CS    stat  statval  set current player stat
+            SET_STAT_MAX = 3,   // SC    stat  statval  set max player stat
+            SET_SKILL = 4;       // SC/CS art   skill    set skill
+    }
 }

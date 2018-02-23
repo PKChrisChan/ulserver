@@ -1,6 +1,9 @@
 package io.baschel.ulserver.game;
 
 import io.baschel.ulserver.Main;
+import io.baschel.ulserver.game.state.AbstractPlayerRecord;
+import io.baschel.ulserver.game.state.GamePlayerRecord;
+import io.baschel.ulserver.game.state.PlayerSet;
 import io.baschel.ulserver.msgs.InternalServerMessage;
 import io.baschel.ulserver.msgs.MessageUtils;
 import io.baschel.ulserver.msgs.internal.DisconnectClient;
@@ -48,7 +51,7 @@ public class GameVerticle extends AbstractServerVerticle implements GameState {
         {
             DisconnectClient dc = (DisconnectClient)ism;
             L.debug("Got client disconnect for {}", dc.getClientId());
-            Set<PlayerRecord> rec = playerSet.getPlayers("connectionId", dc.getClientId());
+            Set<AbstractPlayerRecord> rec = playerSet.getPlayers("connectionId", dc.getClientId());
             if(rec != null)
                 rec.forEach(this::logout);
         }
@@ -77,47 +80,47 @@ public class GameVerticle extends AbstractServerVerticle implements GameState {
 
     @Override
     public boolean isAccountLoggedIn(int acctId) {
-        Set<PlayerRecord> players = playerSet.getPlayers("billingId", acctId);
+        Set<AbstractPlayerRecord> players = playerSet.getPlayers("billingId", acctId);
         return players != null && players.size() > 0;
     }
 
     @Override
-    public PlayerRecord playerRecordForConnectionId(String connectionId)
+    public GamePlayerRecord playerRecordForConnectionId(String connectionId)
     {
         return getPlayerRecordForField("connectionId", connectionId);
     }
 
     @Override
-    public Set<PlayerRecord> roomPlayers(String locationId)
+    public Set<AbstractPlayerRecord> roomPlayers(String locationId)
     {
         return playerSet.getPlayers("locationId", locationId);
     }
 
-    private PlayerRecord getPlayerRecordForField(String field, Object lookup)
+    private GamePlayerRecord getPlayerRecordForField(String field, Object lookup)
     {
-        Set<PlayerRecord> players = playerSet.getPlayers(field, lookup);
+        Set<AbstractPlayerRecord> players = playerSet.getPlayers(field, lookup);
         if(players != null && players.size() > 0)
-            return players.toArray(new PlayerRecord[]{})[0];
+            return players.toArray(new GamePlayerRecord[]{})[0];
         return null;
     }
 
     @Override
-    public PlayerRecord getPlayerRecord(int playerId) {
+    public GamePlayerRecord getPlayerRecord(int playerId) {
         return getPlayerRecordForField("pid", playerId);
     }
 
     @Override
-    public void sendToPlayer(LyraMessage message, PlayerRecord record) {
+    public void sendToPlayer(LyraMessage message, AbstractPlayerRecord record) {
         MessageUtils.sendJsonMessage(record.connectionId, message);
     }
 
     @Override
-    public void sendToRoom(LyraMessage message, String levelRoomId, PlayerRecord record) {
-        Set<PlayerRecord> room = playerSet.getPlayers("locationId", levelRoomId);
+    public void sendToRoom(LyraMessage message, String levelRoomId, AbstractPlayerRecord record) {
+        Set<AbstractPlayerRecord> room = playerSet.getPlayers("locationId", levelRoomId);
         if(room == null && record == null)
             return;
 
-        for(PlayerRecord target : room)
+        for(AbstractPlayerRecord target : room)
             if(target.equals(record))
                 continue;
             else
@@ -135,18 +138,18 @@ public class GameVerticle extends AbstractServerVerticle implements GameState {
     }
 
     @Override
-    public void movePlayer(PlayerRecord player, int level, int room) {
+    public void movePlayer(GamePlayerRecord player, int level, int room) {
         String levelId = player.levelId();
         String locationId = player.locationId();
-        new PlayerLeaveRoom(player, player.level, player.room).send();
+        new PlayerLeaveRoom(player.toRoomPlayerRecord(), player.level, player.room).send();
         player.level = level;
         player.room = room;
-        new PlayerEnterRoom(player, level, room).send();
+        new PlayerEnterRoom(player.toRoomPlayerRecord(), level, room).send();
         playerSet.reindexSingleField("levelId", levelId, player);
         playerSet.reindexSingleField("locationId", locationId, player);
     }
 
-    public void sendMotd(PlayerRecord rec)
+    public void sendMotd(AbstractPlayerRecord rec)
     {
         RMsg_Speech s = new RMsg_Speech();
         s.speech_type = String.valueOf(SERVER_TEXT);
@@ -158,13 +161,13 @@ public class GameVerticle extends AbstractServerVerticle implements GameState {
     }
 
     @Override
-    public void login(PlayerRecord record) {
+    public void login(AbstractPlayerRecord record) {
         playerSet.addPlayer(record);
         sendMotd(record);
     }
 
     @Override
-    public void logout(PlayerRecord record) {
+    public void logout(AbstractPlayerRecord record) {
         playerSet.removePlayer(record);
 
     }

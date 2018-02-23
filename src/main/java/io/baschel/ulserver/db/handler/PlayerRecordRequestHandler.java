@@ -1,12 +1,11 @@
 package io.baschel.ulserver.db.handler;
 
-import io.baschel.ulserver.game.PlayerRecord;
+import io.baschel.ulserver.game.state.GamePlayerRecord;
 import io.baschel.ulserver.msgs.InternalServerMessage;
 import io.baschel.ulserver.msgs.db.*;
 import io.baschel.ulserver.msgs.internal.InternalMessageHandler;
 import io.baschel.ulserver.msgs.lyra.InventoryItem;
 import io.baschel.ulserver.msgs.lyra.LmArts;
-import io.baschel.ulserver.msgs.lyra.LmItem;
 import io.baschel.ulserver.msgs.lyra.LmStats;
 import io.baschel.ulserver.msgs.lyra.consts.LyraConsts;
 import io.baschel.ulserver.util.Json;
@@ -53,7 +52,7 @@ public class PlayerRecordRequestHandler implements InternalMessageHandler {
         });
     }
 
-    public void fillInPlayerRecordFromPlayerDbRow(PlayerRecord record, JsonObject row)
+    public void fillInPlayerRecordFromPlayerDbRow(GamePlayerRecord record, JsonObject row)
     {
         // Build the record
         record.pid = row.getInteger("player_id");
@@ -89,7 +88,7 @@ public class PlayerRecordRequestHandler implements InternalMessageHandler {
     private void _handle(SQLConnection conn, Message<JsonObject> sourceMessage, PlayerRecordRequest recordRequest)
     {
         String whereClause = recordRequest.byId() ? "where player_id = ?" : "where upper_name = ?";
-        PlayerRecord record = new PlayerRecord();
+        GamePlayerRecord record = new GamePlayerRecord();
         JsonArray params = new JsonArray().add(recordRequest.byId() ? recordRequest.id() : recordRequest.uname());
         conn.queryWithParams("select player_id,player_name,password,focus_stat,avatar,avatar2,xp," +
                 "acct_type,billing_id,xp_bonus,xp_penalty,avatar_descrip,suspended_date,pmare_session_start,pmare_billing_type,quest_xp_pool," +
@@ -104,11 +103,11 @@ public class PlayerRecordRequestHandler implements InternalMessageHandler {
                 if(res.result().getNumRows() == 0) {
                     L.error("Failed to retrieve player record for {} - numrows was 0", params.encode());
                     recordRequest.failed = true;
-                    sourceMessage.fail(0, "Unable to locate PlayerRecord!");
+                    sourceMessage.fail(0, "Unable to locate GamePlayerRecord!");
                 }
                 else if(res.result().getNumRows() != 1) {
                     L.error("Failed to retrieve player record for {} - numrows was > 1", params.encode());
-                    sourceMessage.fail(1, "Ambiguous PlayerRecord response!");
+                    sourceMessage.fail(1, "Ambiguous GamePlayerRecord response!");
                     recordRequest.failed = true;
                 }
                 else {
@@ -167,7 +166,7 @@ public class PlayerRecordRequestHandler implements InternalMessageHandler {
     }
 
 
-    private void getArts(PlayerRecord rec, PlayerRecordRequest origreq, Message<JsonObject> msg)
+    private void getArts(GamePlayerRecord rec, PlayerRecordRequest origreq, Message<JsonObject> msg)
     {
         PlayerArtsRequest artsReq = PlayerArtsRequest.of(rec.pid);
         artsReq.send(reply -> {
@@ -184,7 +183,7 @@ public class PlayerRecordRequestHandler implements InternalMessageHandler {
         });
     }
 
-    private void getGuildRanks(PlayerRecord rec, PlayerRecordRequest req, Message<JsonObject> msg)
+    private void getGuildRanks(GamePlayerRecord rec, PlayerRecordRequest req, Message<JsonObject> msg)
     {
         PlayerGuildRankRequest pgrr = PlayerGuildRankRequest.of(rec.pid);
         pgrr.send(reply -> {
@@ -202,7 +201,7 @@ public class PlayerRecordRequestHandler implements InternalMessageHandler {
         });
     }
 
-    private void getStats(PlayerRecord rec, PlayerRecordRequest req, Message<JsonObject> msg)
+    private void getStats(GamePlayerRecord rec, PlayerRecordRequest req, Message<JsonObject> msg)
     {
         PlayerStatsRequest psr = PlayerStatsRequest.of(rec.pid);
         psr.send(reply -> {
@@ -221,13 +220,13 @@ public class PlayerRecordRequestHandler implements InternalMessageHandler {
     }
 
 
-    private void checkComplete(PlayerRecordRequest req, PlayerRecord rec, Message<JsonObject> msg)
+    private void checkComplete(PlayerRecordRequest req, GamePlayerRecord rec, Message<JsonObject> msg)
     {
         if(req.isComplete() && !req.failed)
             msg.reply(Json.objectToJsonObject(rec));
     }
 
-    private void getItems(PlayerRecord rec, PlayerRecordRequest req, Message<JsonObject> msg)
+    private void getItems(GamePlayerRecord rec, PlayerRecordRequest req, Message<JsonObject> msg)
     {
         PlayerInventoryRequest pir = PlayerInventoryRequest.of(rec.pid);
         pir.send(reply -> {
