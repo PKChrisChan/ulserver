@@ -69,7 +69,7 @@ public class SpeechHandler extends GameMessageHandler {
             }
             // TODO MDA: send message to player party!
             if(send)
-                new SendMessageToRoom(gpr.level, gpr.room).setSender(gpr.pid).setSendToSender(false).setMeesage((RMsg_Speech) message).send();
+                new SendMessageToRoom(gpr.level, gpr.room).setSender(gpr.pid).setSendToSender(false).setMessage((RMsg_Speech) message).send();
         }
     }
 

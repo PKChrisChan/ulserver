@@ -93,7 +93,7 @@ public class PlayerUpdatesHandler extends GameMessageHandler {
         rmChange.playerid = rec.pid;
         rec.avatar = avMsg;
         // TODO MDA send to party!
-        new SendMessageToRoom(rec.level, rec.room).setSendToSender(false).setSender(rec.pid).setMeesage(rmChange).send();
+        new SendMessageToRoom(rec.level, rec.room).setSendToSender(false).setSender(rec.pid).setMessage(rmChange).send();
     }
 
     private boolean handleSetSkill(GamePlayerRecord rec, GMsg_ChangeStat.StatChange sc) {

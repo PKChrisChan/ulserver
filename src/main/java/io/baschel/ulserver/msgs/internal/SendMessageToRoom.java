@@ -21,7 +21,7 @@ public class SendMessageToRoom implements InternalServerMessage {
         this.room = room;
     }
 
-    public SendMessageToRoom setMeesage(LyraMessage lm) {
+    public SendMessageToRoom setMessage(LyraMessage lm) {
         this.message = lm;
         return this;
     }
