@@ -13,8 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GamePlayerRecord extends AbstractPlayerRecord {
-    public GamePlayerRecord()
-    {
+    public GamePlayerRecord() {
         avatar = new LmAvatar();
         arts = new LmArts();
         inventory = new ArrayList<>();
@@ -47,23 +46,19 @@ public class GamePlayerRecord extends AbstractPlayerRecord {
     public int pmareBillingType;
 
     @JsonIgnore
-    public boolean isNewlyAwakened()
-    {
+    public boolean isNewlyAwakened() {
         return stats.xp < 10000 && timeOnline < (60 * 60 * 2);
     }
 
-    public String locationId()
-    {
+    public String locationId() {
         return String.format("L%02dR%02d", level, room);
     }
 
-    public String levelId()
-    {
+    public String levelId() {
         return 'L' + Integer.toString(level);
     }
 
-    public RoomPlayerRecord toRoomPlayerRecord()
-    {
+    public RoomPlayerRecord toRoomPlayerRecord() {
         RoomPlayerRecord rpr = new RoomPlayerRecord();
         rpr.avatar = avatar;
         rpr.connectionId = connectionId;

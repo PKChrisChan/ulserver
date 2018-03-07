@@ -6,24 +6,22 @@ import io.baschel.ulserver.msgs.InternalServerMessage;
 
 public class LoggedInPlayersRequest implements InternalServerMessage {
     public String dest;
-    public static enum LoggedInRequestType
-    {
+
+    public static enum LoggedInRequestType {
         GAME,
         LEVEL,
         ROOM
     }
 
-    public LoggedInPlayersRequest() {}
+    public LoggedInPlayersRequest() {
+    }
 
-    public LoggedInPlayersRequest(LoggedInRequestType type)
-    {
+    public LoggedInPlayersRequest(LoggedInRequestType type) {
         this(type, 0, 0);
     }
 
-    public LoggedInPlayersRequest(LoggedInRequestType type, int lvl, int room)
-    {
-        switch(type)
-        {
+    public LoggedInPlayersRequest(LoggedInRequestType type, int lvl, int room) {
+        switch (type) {
             case GAME:
                 dest = GameVerticle.INTERNAL_MESSAGE_ADDRESS;
                 break;

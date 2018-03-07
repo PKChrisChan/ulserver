@@ -10,14 +10,15 @@ public class PlayerGuildRankRequest implements InternalServerMessage {
     @JsonIgnore
     public boolean failed = false;
 
-    public static PlayerGuildRankRequest of(int playerId)
-    {
+    public static PlayerGuildRankRequest of(int playerId) {
         PlayerGuildRankRequest r = new PlayerGuildRankRequest();
         r.pid = playerId;
         return r;
     }
 
-    public int playerId() { return pid; }
+    public int playerId() {
+        return pid;
+    }
 
     @Override
     public String address() {

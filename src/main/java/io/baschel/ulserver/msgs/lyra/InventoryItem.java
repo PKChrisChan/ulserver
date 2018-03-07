@@ -12,17 +12,15 @@ public class InventoryItem {
     public int flags; // 1 means identified, 2 means active shield
 
     @JsonIgnore
-    public void setPosAndFlags(int dbXValue)
-    {
+    public void setPosAndFlags(int dbXValue) {
         pos = dbXValue & 0xFF;
         flags = (dbXValue >> 8) & 0xFF;
     }
 
     @JsonIgnore
-    public int getDbXValue()
-    {
+    public int getDbXValue() {
         int x = 0;
-        x =  flags << 8;
+        x = flags << 8;
         x |= pos;
         return x;
     }

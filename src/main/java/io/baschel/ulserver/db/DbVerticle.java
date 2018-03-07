@@ -23,9 +23,9 @@ public class DbVerticle extends AbstractVerticle {
     private static final Logger L = LoggerFactory.getLogger(DbVerticle.class);
     public static final String EVENTBUS_ADDRESS = DbVerticle.class.getName();
     private DbMessageRouter messageRouter = new DbMessageRouter();
+
     @Override
-    public void start()
-    {
+    public void start() {
         connect();
         vertx.eventBus().consumer(EVENTBUS_ADDRESS, this::handleDbMessage);
     }
@@ -36,8 +36,7 @@ public class DbVerticle extends AbstractVerticle {
         messageRouter.handle(message, ism);
     }
 
-    public void connect()
-    {
+    public void connect() {
         DbConfig dbc = Main.config.dbConfig;
         dbc.databases.forEach((db, pass) -> {
             JsonObject dbProps = new JsonObject()

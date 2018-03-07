@@ -14,16 +14,14 @@ public class MessageUtils {
     private static Logger L = LoggerFactory.getLogger(MessageUtils.class);
     public static final int JSON_TYPE = 2057;
 
-    public static LyraMessage readSocketMessage(Buffer buf)
-    {
+    public static LyraMessage readSocketMessage(Buffer buf) {
         int msgType = buf.getUnsignedShort(0);
         int msgSize = buf.getUnsignedShort(2);
         String jsMsg = buf.getString(4, buf.length() - 1);
         return Json.objectFromJsonObject(new JsonObject(jsMsg), LyraMessage.class);
     }
 
-    public static void sendJsonMessage(String source, LyraMessage message)
-    {
+    public static void sendJsonMessage(String source, LyraMessage message) {
         JsonObject obj = Json.objectToJsonObject(message);
         L.debug("Sending message {} to {}", obj.encode(), source);
         Buffer buf = Buffer.buffer();
@@ -41,8 +39,7 @@ public class MessageUtils {
         Main.vertx.eventBus().send(source, buf);
     }
 
-    public static void sendRawMessage(String source, LyraMessage message, int type)
-    {
+    public static void sendRawMessage(String source, LyraMessage message, int type) {
         Buffer msg = Buffer.buffer();
         Buffer content = message.asBinary();
         msg.appendUnsignedShort(type);

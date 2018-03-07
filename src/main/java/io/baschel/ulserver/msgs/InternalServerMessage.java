@@ -9,26 +9,22 @@ import io.vertx.core.Handler;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonObject;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include=JsonTypeInfo.As.PROPERTY, property="@class")
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
 public interface InternalServerMessage {
     @JsonIgnore
-    default JsonObject getMessageContents()
-    {
+    default JsonObject getMessageContents() {
         return Json.objectToJsonObject(this);
     }
 
-    default void send()
-    {
+    default void send() {
         Main.vertx.eventBus().send(address(), Json.objectToJsonObject(this));
     }
 
-    default <T> void send(Handler<AsyncResult<Message<T>>> reply)
-    {
+    default <T> void send(Handler<AsyncResult<Message<T>>> reply) {
         Main.vertx.eventBus().send(address(), Json.objectToJsonObject(this), reply);
     }
 
-    default <T> void publish()
-    {
+    default <T> void publish() {
         Main.vertx.eventBus().publish(address(), Json.objectToJsonObject(this));
     }
 

@@ -11,21 +11,18 @@ public class RMsg_PlayerUpdate implements LyraMessage {
     public static final int MSG_TYPE = 1015;
 
     @Override
-    public Buffer asBinary()
-    {
+    public Buffer asBinary() {
         Buffer b = Buffer.buffer();
         b.appendUnsignedInt(pid);
-        for(LmPeerUpdate u : updates)
+        for (LmPeerUpdate u : updates)
             b.appendBuffer(u.asBinary());
         return b;
     }
 
-    public static List<RMsg_PlayerUpdate> updatesForList(int pid, List<LmPeerUpdate> updateList)
-    {
+    public static List<RMsg_PlayerUpdate> updatesForList(int pid, List<LmPeerUpdate> updateList) {
         int current = 0;
         List<RMsg_PlayerUpdate> ret = new ArrayList<>();
-        while(current < updateList.size())
-        {
+        while (current < updateList.size()) {
             int next = Math.min(current + 100, updateList.size());
             List<LmPeerUpdate> slice = updateList.subList(current, next);
             RMsg_PlayerUpdate u = new RMsg_PlayerUpdate();

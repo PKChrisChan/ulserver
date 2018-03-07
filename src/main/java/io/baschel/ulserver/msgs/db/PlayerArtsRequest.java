@@ -11,14 +11,15 @@ public class PlayerArtsRequest implements InternalServerMessage {
     @JsonIgnore
     public boolean failed = false;
 
-    public static PlayerArtsRequest of(int playerId)
-    {
+    public static PlayerArtsRequest of(int playerId) {
         PlayerArtsRequest par = new PlayerArtsRequest();
         par.pid = playerId;
         return par;
     }
 
-    public int playerId() { return pid; }
+    public int playerId() {
+        return pid;
+    }
 
     @Override
     public String address() {

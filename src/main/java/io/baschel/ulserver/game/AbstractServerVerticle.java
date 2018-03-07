@@ -9,8 +9,7 @@ import io.vertx.core.json.JsonObject;
 
 public abstract class AbstractServerVerticle extends AbstractVerticle {
     @Override
-    public void start()
-    {
+    public void start() {
         vertx.eventBus().consumer(Main.GLOBAL, this::onGlobalMessage);
     }
 

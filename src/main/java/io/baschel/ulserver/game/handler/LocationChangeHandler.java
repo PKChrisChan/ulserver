@@ -17,21 +17,19 @@ import java.util.Set;
 public class LocationChangeHandler extends GameMessageHandler {
     private static final Logger L = LoggerFactory.getLogger(LocationChangeHandler.class);
 
-    public LocationChangeHandler(GameState gs)
-    {
+    public LocationChangeHandler(GameState gs) {
         super(gs);
     }
 
     @Override
     public void handle(String source, LyraMessage message) {
-        if(message instanceof GMsg_GotoLevel)
-            _handle(source, (GMsg_GotoLevel)message);
-        else if(message instanceof RMsg_GotoRoom)
-            _handle(source, (RMsg_GotoRoom)message);
+        if (message instanceof GMsg_GotoLevel)
+            _handle(source, (GMsg_GotoLevel) message);
+        else if (message instanceof RMsg_GotoRoom)
+            _handle(source, (RMsg_GotoRoom) message);
     }
 
-    private void _handle(String source, RMsg_GotoRoom message)
-    {
+    private void _handle(String source, RMsg_GotoRoom message) {
         GamePlayerRecord record = gs.playerRecordForConnectionId(source);
         gs.movePlayer(record, record.level, message.roomid);
     }
@@ -40,13 +38,13 @@ public class LocationChangeHandler extends GameMessageHandler {
         // TODO MDA: Check if player is allowed to move to this room.
         GamePlayerRecord record = gs.playerRecordForConnectionId(source);
         RMsg_LoginAck la = new RMsg_LoginAck();
-        if(record == null) {
+        if (record == null) {
             L.warn("Connection ID {} not found in playerSet?", source);
             la.status = LyraConsts.RoomLogin.LOGIN_PLAYERNOTFOUND;
             MessageUtils.sendJsonMessage(source, la);
         }
-        
-        if(record.level == message.levelid && record.room == message.roomid)
+
+        if (record.level == message.levelid && record.room == message.roomid)
             la.status = LyraConsts.RoomLogin.LOGIN_ALREADYIN;
 
         record.lastUpdate = message.update;

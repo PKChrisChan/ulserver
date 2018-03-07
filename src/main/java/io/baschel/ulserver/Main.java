@@ -41,7 +41,7 @@ public class Main {
         vertx.deployVerticle(new GameVerticle());
         vertx.deployVerticle(new DbVerticle(), res ->
         {
-            if(res.failed())
+            if (res.failed())
                 vertx.close();
             else
                 deployRooms();
@@ -52,14 +52,13 @@ public class Main {
 
     private static void deployRooms() {
         new AllLevelsRequest().send(res -> {
-            if(res.failed()) {
+            if (res.failed()) {
                 L.error("Failed to get levels", res.cause());
                 vertx.close();
-            }
-            else {
-                JsonArray levels = (JsonArray)res.result().body();
+            } else {
+                JsonArray levels = (JsonArray) res.result().body();
                 levels.forEach(obj -> {
-                    JsonObject rec = (JsonObject)obj;
+                    JsonObject rec = (JsonObject) obj;
                     DeploymentOptions opts = new DeploymentOptions().setConfig(new JsonObject().
                             put("level", rec.getInteger("level_id")).put("room", rec.getInteger("room_id")));
                     vertx.deployVerticle(RoomVerticle.class.getName(), opts);
@@ -68,25 +67,24 @@ public class Main {
         });
     }
 
-    public static void createHttpServer()
-    {
+    public static void createHttpServer() {
         HttpServer serv = vertx.createHttpServer();
         Router router = Router.router(vertx);
         router.get("/playerRecord/:playerName").handler(ctx -> {
             PlayerRecordRequest.of(ctx.request().getParam("playerName")).withArts(true).withItems(true).send(reply -> {
-                if(reply.failed()) {
+                if (reply.failed()) {
                     ctx.response().setStatusCode(500).setStatusMessage(reply.toString()).end(reply.cause().toString());
                 } else {
-                    ctx.response().setStatusCode(200).end(((JsonObject)reply.result().body()).encodePrettily());
+                    ctx.response().setStatusCode(200).end(((JsonObject) reply.result().body()).encodePrettily());
                 }
             });
         });
         router.get("/playersOnline").handler(ctx -> {
             new LoggedInPlayersRequest(LoggedInPlayersRequest.LoggedInRequestType.GAME).send(reply -> {
-                if(reply.failed()) {
+                if (reply.failed()) {
                     ctx.response().setStatusCode(500).setStatusMessage(reply.toString()).end(reply.cause().toString());
                 } else {
-                    ctx.response().setStatusCode(200).end(((JsonArray)reply.result().body()).encodePrettily());
+                    ctx.response().setStatusCode(200).end(((JsonArray) reply.result().body()).encodePrettily());
                 }
             });
         });
@@ -94,10 +92,10 @@ public class Main {
             String lid = ctx.request().getParam("levelId");
             String rid = ctx.request().getParam("roomId");
             new LoggedInPlayersRequest(LoggedInPlayersRequest.LoggedInRequestType.ROOM, Integer.parseInt(lid), Integer.parseInt(rid)).send(reply -> {
-                if(reply.failed()) {
+                if (reply.failed()) {
                     ctx.response().setStatusCode(500).setStatusMessage(reply.toString()).end(reply.cause().toString());
                 } else {
-                    ctx.response().setStatusCode(200).end(((JsonArray)reply.result().body()).encodePrettily());
+                    ctx.response().setStatusCode(200).end(((JsonArray) reply.result().body()).encodePrettily());
                 }
             });
         });

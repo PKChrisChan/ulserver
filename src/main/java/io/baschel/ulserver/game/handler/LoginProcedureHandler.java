@@ -27,36 +27,35 @@ public class LoginProcedureHandler extends GameMessageHandler {
     static Set<Class<? extends LyraMessage>> handleSet = new HashSet<>();
     private static final Logger L = LoggerFactory.getLogger(LoginProcedureHandler.class);
     private Map<String, String> pendingConnectionChallengeMap = new HashMap<>();
+
     static {
         handleSet.add(GMsg_PreLogin.class);
         handleSet.add(GMsg_Login.class);
     }
 
-    public LoginProcedureHandler(GameState gs)
-    {
+    public LoginProcedureHandler(GameState gs) {
         super(gs);
     }
 
     @Override
     public void handle(String source, LyraMessage message) {
-        if(message instanceof GMsg_PreLogin)
-            handlePreLogin(source, (GMsg_PreLogin)message);
+        if (message instanceof GMsg_PreLogin)
+            handlePreLogin(source, (GMsg_PreLogin) message);
         else
-            handleLogin(source, (GMsg_Login)message);
+            handleLogin(source, (GMsg_Login) message);
     }
 
     private void handlePreLogin(String source, GMsg_PreLogin message) {
         L.info("Received PreLogin");
         GMsg_PreLoginAck pla = new GMsg_PreLoginAck();
         pla.version = Main.config.serverConfig.gameVersion;
-        if(message.version != Main.config.serverConfig.gameVersion) {
+        if (message.version != Main.config.serverConfig.gameVersion) {
             L.warn("Version mismatch: Expected {} got {}", Main.config.serverConfig.gameVersion, message.version);
             pla.status = LyraConsts.LoginStatus.LOGIN_UNKNOWNERROR.toValue();
-        }
-        else {
+        } else {
             initChallenge(source);
             pla.status = LyraConsts.LoginStatus.LOGIN_OK.toValue();
-            pla.challenge  = pendingConnectionChallengeMap.get(source);
+            pla.challenge = pendingConnectionChallengeMap.get(source);
         }
 
         MessageUtils.sendJsonMessage(source, pla);
@@ -67,14 +66,11 @@ public class LoginProcedureHandler extends GameMessageHandler {
         GMsg_LoginAck response = new GMsg_LoginAck();
         AtomicBoolean gmBuild = new AtomicBoolean();
         AtomicBoolean pmareBuild = new AtomicBoolean();
-        response.version = (short)Main.config.serverConfig.gameVersion;
-        if(message.version > GM_DELTA)
-        {
+        response.version = (short) Main.config.serverConfig.gameVersion;
+        if (message.version > GM_DELTA) {
             gmBuild.set(true);
             message.version -= GM_DELTA;
-        }
-        else if(message.version > PMARE_DELTA)
-        {
+        } else if (message.version > PMARE_DELTA) {
             pmareBuild.set(true);
             message.version -= PMARE_DELTA;
         }
@@ -95,23 +91,20 @@ public class LoginProcedureHandler extends GameMessageHandler {
 
         // Ok - get the playerrecord
         PlayerRecordRequest.of(message.playername).withArts(true).withItems(true).send(result -> {
-            if(result.failed())
-            {
+            if (result.failed()) {
                 L.error("Couldn't retrieve player record for {}", message.playername);
                 response.request_status = (short) LOGIN_USERNOTFOUND.toValue().charValue();
                 MessageUtils.sendJsonMessage(source, response);
                 return;
-            }
-            else {
-                GamePlayerRecord record = Json.objectFromJsonObject((JsonObject)result.result().body(), GamePlayerRecord.class);
+            } else {
+                GamePlayerRecord record = Json.objectFromJsonObject((JsonObject) result.result().body(), GamePlayerRecord.class);
                 record.connectionId = source;
-                if(!checkAccount(record, response, gmBuild.get(), pmareBuild.get()))
-                {
+                if (!checkAccount(record, response, gmBuild.get(), pmareBuild.get())) {
                     MessageUtils.sendJsonMessage(source, response);
                     return;
                 }
 
-                if(Main.config.serverConfig.checkPasswords) {
+                if (Main.config.serverConfig.checkPasswords) {
                     try {
                         if (!checkPassword(record, message.hash)) {
                             response.request_status = (short) LOGIN_BADPASSWORD.toValue().charValue();
@@ -125,9 +118,9 @@ public class LoginProcedureHandler extends GameMessageHandler {
                     }
                 }
                 // TODO MDA: check cooloff, check PMare.
-                response.request_status =  (short)LOGIN_OK.toValue().charValue();
+                response.request_status = (short) LOGIN_OK.toValue().charValue();
                 response.avatar = record.avatar;
-                response.num_items = (short)record.inventory.size();
+                response.num_items = (short) record.inventory.size();
                 response.items = record.inventory;
                 response.stats = record.stats;
                 response.server_port = 7500;
@@ -135,8 +128,8 @@ public class LoginProcedureHandler extends GameMessageHandler {
                 response.arts = record.arts;
                 response.xp_gain = record.xpBonus;
                 response.xp_loss = record.xpPenalty;
-                response.ppoints = (short)record.stats.pps;
-                response.pp_pool = (short)record.stats.pp_pool;
+                response.ppoints = (short) record.stats.pps;
+                response.pp_pool = (short) record.stats.pp_pool;
                 response.description = record.description;
                 response.playerid = record.pid;
                 MessageUtils.sendJsonMessage(source, response);
@@ -164,56 +157,42 @@ public class LoginProcedureHandler extends GameMessageHandler {
 
     private boolean checkAccount(GamePlayerRecord record, GMsg_LoginAck response, boolean gmBuild, boolean pmareBuild) {
         boolean ok = true;
-        if(record.acctType == LyraConsts.AcctType.ACCT_ADMIN_EXPIRED.toValue() ||
-                record.acctType == LyraConsts.AcctType.ACCT_PLAYER_EXPIRED.toValue())
-        {
+        if (record.acctType == LyraConsts.AcctType.ACCT_ADMIN_EXPIRED.toValue() ||
+                record.acctType == LyraConsts.AcctType.ACCT_PLAYER_EXPIRED.toValue()) {
             L.warn("Player {} can't log in, status is {}", record.pid, record.acctType);
-            response.request_status = (short)LOGIN_EXPIRED.toValue().charValue();
+            response.request_status = (short) LOGIN_EXPIRED.toValue().charValue();
             ok = false;
-        }
-        else if( record.acctType == LyraConsts.AcctType.ACCT_KILLED.toValue())
-        {
+        } else if (record.acctType == LyraConsts.AcctType.ACCT_KILLED.toValue()) {
             L.warn("Player {} killed", record.pid);
-            response.request_status = (short)LOGIN_KILLED.toValue().charValue();
+            response.request_status = (short) LOGIN_KILLED.toValue().charValue();
             ok = false;
-        }
-        else if(record.acctType == LyraConsts.AcctType.ACCT_LOCKED.toValue())
-        {
+        } else if (record.acctType == LyraConsts.AcctType.ACCT_LOCKED.toValue()) {
             L.warn("Player {} locked", record.pid);
-            response.request_status = (short)LOGIN_TERMINATED.toValue().charValue();
+            response.request_status = (short) LOGIN_TERMINATED.toValue().charValue();
             ok = false;
-        }
-        else if(gmBuild && record.acctType != LyraConsts.AcctType.ACCT_ADMIN.toValue())
-        {
+        } else if (gmBuild && record.acctType != LyraConsts.AcctType.ACCT_ADMIN.toValue()) {
             L.warn("Player {} attempting login with GM build", record.pid);
-            response.request_status =  (short)LOGIN_MISMATCH.toValue().charValue();
+            response.request_status = (short) LOGIN_MISMATCH.toValue().charValue();
             ok = false;
-        }
-        else if(pmareBuild && record.acctType != LyraConsts.AcctType.ACCT_PMARE.toValue())
-        {
+        } else if (pmareBuild && record.acctType != LyraConsts.AcctType.ACCT_PMARE.toValue()) {
             L.warn("Player {} attempting to login with PMare build", record.pid);
-            response.request_status = (short)LOGIN_MISMATCH.toValue().charValue();
+            response.request_status = (short) LOGIN_MISMATCH.toValue().charValue();
             ok = false;
-        }
-        else if(gs.isAccountLoggedIn(record.billingId))
-        {
+        } else if (gs.isAccountLoggedIn(record.billingId)) {
             L.warn("Player {} billingId {} already in", record.pid, record.billingId);
-            response.request_status = (short)LOGIN_ALREADYIN.toValue().charValue();
+            response.request_status = (short) LOGIN_ALREADYIN.toValue().charValue();
             ok = false;
-        }
-        else if(record.suspendedDate != null && record.suspendedDate.isAfter(LocalDate.now()))
-        {
+        } else if (record.suspendedDate != null && record.suspendedDate.isAfter(LocalDate.now())) {
             L.warn("Player {} is suspended", record.pid);
-            response.request_status = (short)LOGIN_SUSPENDED.toValue().charValue();
+            response.request_status = (short) LOGIN_SUSPENDED.toValue().charValue();
             response.num_items = (short) ChronoUnit.DAYS.between(LocalDate.now(), record.suspendedDate);
         }
         return ok;
     }
 
-    private void initChallenge(String source)
-    {
+    private void initChallenge(String source) {
         StringBuffer buf = new StringBuffer();
-        for(int i = 0; i < 3; i++)
+        for (int i = 0; i < 3; i++)
             buf.append(UUID.randomUUID().toString().replaceAll("-", ""));
 
         pendingConnectionChallengeMap.put(source, buf.toString());

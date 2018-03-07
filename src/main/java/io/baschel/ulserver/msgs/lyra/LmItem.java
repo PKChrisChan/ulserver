@@ -1,7 +1,5 @@
 package io.baschel.ulserver.msgs.lyra;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 public class LmItem implements LyraMessage {
     public LmItemHdr header;
     public int state1;
@@ -9,8 +7,7 @@ public class LmItem implements LyraMessage {
     public int state3;
     public String name;
 
-    public LmItem()
-    {
+    public LmItem() {
         header = new LmItemHdr();
     }
 }

@@ -10,8 +10,7 @@ public class LmPeerUpdate implements LyraMessage {
     public int u1;
     public int u2;
 
-    public LmPeerUpdate initFromBinary(Buffer buf)
-    {
+    public LmPeerUpdate initFromBinary(Buffer buf) {
         playerid = buf.getInt(0);
         x = buf.getShort(4);
         y = buf.getShort(6);
@@ -23,8 +22,7 @@ public class LmPeerUpdate implements LyraMessage {
     }
 
     @Override
-    public Buffer asBinary()
-    {
+    public Buffer asBinary() {
         Buffer b = Buffer.buffer();
         b.appendUnsignedInt(playerid);
         b.appendShort(x);

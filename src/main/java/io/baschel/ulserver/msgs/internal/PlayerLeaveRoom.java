@@ -10,13 +10,11 @@ public class PlayerLeaveRoom implements InternalServerMessage {
     public int room;
     public int level;
 
-    public PlayerLeaveRoom()
-    {
+    public PlayerLeaveRoom() {
         this(null, -1, -1);
     }
 
-    public PlayerLeaveRoom(AbstractPlayerRecord rec, int level, int room)
-    {
+    public PlayerLeaveRoom(AbstractPlayerRecord rec, int level, int room) {
         this.record = rec;
         this.room = room;
         this.level = level;
@@ -24,7 +22,7 @@ public class PlayerLeaveRoom implements InternalServerMessage {
 
     @Override
     public String address() {
-        if(room > 0 && level > 0)
+        if (room > 0 && level > 0)
             return RoomVerticle.eventBusAddress(level, room);
         else if (level > 0)
             return RoomVerticle.eventBusAddress(level);

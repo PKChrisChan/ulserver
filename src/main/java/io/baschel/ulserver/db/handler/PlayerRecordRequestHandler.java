@@ -29,17 +29,17 @@ import java.util.stream.Collectors;
 public class PlayerRecordRequestHandler implements InternalMessageHandler {
 
     private AsyncSQLClient player;
-    public PlayerRecordRequestHandler(AsyncSQLClient playerDb)
-    {
+
+    public PlayerRecordRequestHandler(AsyncSQLClient playerDb) {
         player = playerDb;
     }
+
     private static final Logger L = LoggerFactory.getLogger(PlayerRecordRequestHandler.class);
 
     @Override
     public void handle(Message<JsonObject> sourceMessage, InternalServerMessage message) {
-        player.getConnection(res-> {
-            if(res.failed())
-            {
+        player.getConnection(res -> {
+            if (res.failed()) {
                 L.error("Failed to connect!", res.cause());
                 return;
             }
@@ -52,8 +52,7 @@ public class PlayerRecordRequestHandler implements InternalMessageHandler {
         });
     }
 
-    public void fillInPlayerRecordFromPlayerDbRow(GamePlayerRecord record, JsonObject row)
-    {
+    public void fillInPlayerRecordFromPlayerDbRow(GamePlayerRecord record, JsonObject row) {
         // Build the record
         record.pid = row.getInteger("player_id");
         record.name = row.getString("player_name");
@@ -70,7 +69,7 @@ public class PlayerRecordRequestHandler implements InternalMessageHandler {
         record.xpBonus = row.getInteger("xp_bonus");
         record.xpPenalty = row.getInteger("xp_penalty");
         String suspendedDate = row.getString("suspended_date");
-        if(suspendedDate != null)
+        if (suspendedDate != null)
             record.suspendedDate = LocalDate.from(DateTimeFormatter.ISO_LOCAL_DATE.parse(suspendedDate));
         record.timeOnline = row.getInteger("time_online");
         record.pmareSessionStart = row.getInteger("pmare_session_start");
@@ -79,14 +78,13 @@ public class PlayerRecordRequestHandler implements InternalMessageHandler {
         record.stats.pp_pool = row.getInteger("pp_pool");
         record.stats.quest_xp_pool = row.getInteger("quest_xp_pool");
         String lastLogout = row.getString("last_logout");
-        if(lastLogout != null)
+        if (lastLogout != null)
             record.lastLogout = LocalDateTime.from(DateTimeFormatter.ISO_DATE_TIME.parse(lastLogout));
 
         // and fuck all the rest.
     }
 
-    private void _handle(SQLConnection conn, Message<JsonObject> sourceMessage, PlayerRecordRequest recordRequest)
-    {
+    private void _handle(SQLConnection conn, Message<JsonObject> sourceMessage, PlayerRecordRequest recordRequest) {
         String whereClause = recordRequest.byId() ? "where player_id = ?" : "where upper_name = ?";
         GamePlayerRecord record = new GamePlayerRecord();
         JsonArray params = new JsonArray().add(recordRequest.byId() ? recordRequest.id() : recordRequest.uname());
@@ -94,48 +92,43 @@ public class PlayerRecordRequestHandler implements InternalMessageHandler {
                 "acct_type,billing_id,xp_bonus,xp_penalty,avatar_descrip,suspended_date,pmare_session_start,pmare_billing_type,quest_xp_pool," +
                 "pps,pp_pool,last_logout,time_online from player " + whereClause, params, res -> {
             conn.close();
-            if(res.failed()) {
+            if (res.failed()) {
                 L.error("Failed to retrieve player record for {}", res.cause(), params.encode());
                 recordRequest.failed = true;
                 sourceMessage.fail(-1, res.cause().toString());
-            }
-            else {
-                if(res.result().getNumRows() == 0) {
+            } else {
+                if (res.result().getNumRows() == 0) {
                     L.error("Failed to retrieve player record for {} - numrows was 0", params.encode());
                     recordRequest.failed = true;
                     sourceMessage.fail(0, "Unable to locate GamePlayerRecord!");
-                }
-                else if(res.result().getNumRows() != 1) {
+                } else if (res.result().getNumRows() != 1) {
                     L.error("Failed to retrieve player record for {} - numrows was > 1", params.encode());
                     sourceMessage.fail(1, "Ambiguous GamePlayerRecord response!");
                     recordRequest.failed = true;
-                }
-                else {
+                } else {
                     JsonObject row = res.result().getRows().get(0);
                     fillInPlayerRecordFromPlayerDbRow(record, row);
                     getGuildRanks(record, recordRequest, sourceMessage);
                     getStats(record, recordRequest, sourceMessage);
 
                     recordRequest.gotRecord = true;
-                    if(recordRequest.withArts())
+                    if (recordRequest.withArts())
                         getArts(record, recordRequest, sourceMessage);
 
-                    if(recordRequest.withItems())
+                    if (recordRequest.withItems())
                         getItems(record, recordRequest, sourceMessage);
                 }
             }
         });
     }
 
-    private void _handle(SQLConnection conn, Message<JsonObject> sourceMessage, PlayerGuildRankRequest pgrr)
-    {
+    private void _handle(SQLConnection conn, Message<JsonObject> sourceMessage, PlayerGuildRankRequest pgrr) {
         conn.queryWithParams("select * from guildplayer where player_id=? and rank > 0", new JsonArray().add(pgrr.playerId()), res -> {
             conn.close();
-            if(res.failed()) {
+            if (res.failed()) {
                 L.error("Failed to retrieve from guildplayer for {}", res.cause(), pgrr.pid);
                 sourceMessage.fail(5, "Failed to retrieve guildranks!");
-            }
-            else {
+            } else {
                 LmStats guildStats = new LmStats();
                 res.result().getRows().forEach(guildrow -> {
                     guildStats.xp_pool.set(guildrow.getInteger("guild_id"), guildrow.getInteger("xp_pool_curr"));
@@ -146,15 +139,13 @@ public class PlayerRecordRequestHandler implements InternalMessageHandler {
         });
     }
 
-    private void _handle(SQLConnection conn, Message<JsonObject> sourceMessage, PlayerStatsRequest psr)
-    {
+    private void _handle(SQLConnection conn, Message<JsonObject> sourceMessage, PlayerStatsRequest psr) {
         conn.queryWithParams("select * from stat where player_id=?", new JsonArray().add(psr.playerId()), res -> {
             conn.close();
-            if(res.failed()) {
+            if (res.failed()) {
                 L.error("Failed to retrieve from stat for {}", res.cause(), psr.pid);
                 sourceMessage.fail(5, "Failed to retrieve stats!");
-            }
-            else {
+            } else {
                 LmStats stats = new LmStats();
                 res.result().getRows().forEach(statrow -> {
                     stats.curr.set(statrow.getInteger("stat"), statrow.getInteger("curr_stat_level"));
@@ -166,15 +157,13 @@ public class PlayerRecordRequestHandler implements InternalMessageHandler {
     }
 
 
-    private void getArts(GamePlayerRecord rec, PlayerRecordRequest origreq, Message<JsonObject> msg)
-    {
+    private void getArts(GamePlayerRecord rec, PlayerRecordRequest origreq, Message<JsonObject> msg) {
         PlayerArtsRequest artsReq = PlayerArtsRequest.of(rec.pid);
         artsReq.send(reply -> {
             if (reply.failed()) {
                 origreq.failed = true;
                 msg.fail(2, "Unable to retrieve arts");
-            }
-            else {
+            } else {
                 LmArts arts = Json.objectFromJsonObject((JsonObject) reply.result().body(), LmArts.class);
                 rec.arts = arts;
                 origreq.gotArts = true;
@@ -183,16 +172,14 @@ public class PlayerRecordRequestHandler implements InternalMessageHandler {
         });
     }
 
-    private void getGuildRanks(GamePlayerRecord rec, PlayerRecordRequest req, Message<JsonObject> msg)
-    {
+    private void getGuildRanks(GamePlayerRecord rec, PlayerRecordRequest req, Message<JsonObject> msg) {
         PlayerGuildRankRequest pgrr = PlayerGuildRankRequest.of(rec.pid);
         pgrr.send(reply -> {
-            if(reply.failed())
-            {
+            if (reply.failed()) {
                 req.failed = true;
                 msg.fail(6, "Unable to retrieve guildRanks");
             } else {
-                LmStats stats = Json.objectFromJsonObject((JsonObject)reply.result().body(), LmStats.class);
+                LmStats stats = Json.objectFromJsonObject((JsonObject) reply.result().body(), LmStats.class);
                 rec.stats.rank = stats.rank;
                 rec.stats.xp_pool = stats.xp_pool;
                 req.gotGuildRanks = true;
@@ -201,16 +188,14 @@ public class PlayerRecordRequestHandler implements InternalMessageHandler {
         });
     }
 
-    private void getStats(GamePlayerRecord rec, PlayerRecordRequest req, Message<JsonObject> msg)
-    {
+    private void getStats(GamePlayerRecord rec, PlayerRecordRequest req, Message<JsonObject> msg) {
         PlayerStatsRequest psr = PlayerStatsRequest.of(rec.pid);
         psr.send(reply -> {
-            if(reply.failed())
-            {
+            if (reply.failed()) {
                 req.failed = true;
                 msg.fail(6, "Unable to retrieve stats");
             } else {
-                LmStats stats = Json.objectFromJsonObject((JsonObject)reply.result().body(), LmStats.class);
+                LmStats stats = Json.objectFromJsonObject((JsonObject) reply.result().body(), LmStats.class);
                 rec.stats.curr = stats.curr;
                 rec.stats.max = stats.max;
                 req.gotStats = true;
@@ -220,28 +205,25 @@ public class PlayerRecordRequestHandler implements InternalMessageHandler {
     }
 
 
-    private void checkComplete(PlayerRecordRequest req, GamePlayerRecord rec, Message<JsonObject> msg)
-    {
-        if(req.isComplete() && !req.failed)
+    private void checkComplete(PlayerRecordRequest req, GamePlayerRecord rec, Message<JsonObject> msg) {
+        if (req.isComplete() && !req.failed)
             msg.reply(Json.objectToJsonObject(rec));
     }
 
-    private void getItems(GamePlayerRecord rec, PlayerRecordRequest req, Message<JsonObject> msg)
-    {
+    private void getItems(GamePlayerRecord rec, PlayerRecordRequest req, Message<JsonObject> msg) {
         PlayerInventoryRequest pir = PlayerInventoryRequest.of(rec.pid);
         pir.send(reply -> {
-           if(reply.failed()) {
-               L.error("Failed to retrieve items for {}", reply.cause(), rec.pid);
-               req.failed = true;
-               msg.fail(3, "Unable to retrieve items");
-           }
-           else {
-               JsonArray items = (JsonArray)reply.result().body();
-               List<InventoryItem> inventory = (List<InventoryItem>)items.getList().stream().map(o -> Json.objectFromJsonObject((JsonObject)o, InventoryItem.class)).collect(Collectors.toList());
-               rec.inventory = inventory;
-               req.gotItems = true;
-               checkComplete(req, rec, msg);
-           }
+            if (reply.failed()) {
+                L.error("Failed to retrieve items for {}", reply.cause(), rec.pid);
+                req.failed = true;
+                msg.fail(3, "Unable to retrieve items");
+            } else {
+                JsonArray items = (JsonArray) reply.result().body();
+                List<InventoryItem> inventory = (List<InventoryItem>) items.getList().stream().map(o -> Json.objectFromJsonObject((JsonObject) o, InventoryItem.class)).collect(Collectors.toList());
+                rec.inventory = inventory;
+                req.gotItems = true;
+                checkComplete(req, rec, msg);
+            }
         });
     }
 

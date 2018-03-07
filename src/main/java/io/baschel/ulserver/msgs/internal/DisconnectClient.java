@@ -9,12 +9,15 @@ public class DisconnectClient implements InternalServerMessage {
     private String clientId;
 
     @JsonCreator
-    public DisconnectClient(@JsonProperty("clientId") String clientId)
-    {
+    public DisconnectClient(@JsonProperty("clientId") String clientId) {
         this.clientId = clientId;
     }
 
-    public String getClientId() { return clientId; }
+    public String getClientId() {
+        return clientId;
+    }
 
-    public String address() { return Main.GLOBAL; }
+    public String address() {
+        return Main.GLOBAL;
+    }
 }

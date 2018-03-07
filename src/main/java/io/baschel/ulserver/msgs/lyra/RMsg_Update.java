@@ -8,8 +8,7 @@ public class RMsg_Update implements LyraMessage {
     public int levelid;
     public int roomid;
 
-    public RMsg_Update initFromBinary(Buffer buf)
-    {
+    public RMsg_Update initFromBinary(Buffer buf) {
         update = new LmPeerUpdate().initFromBinary(buf);
         levelid = buf.getUnsignedShort(20);
         roomid = buf.getUnsignedShort(22);

@@ -19,27 +19,25 @@ public class PlayerSet {
     // Indices
     private Map<String, Map<Object, Set<AbstractPlayerRecord>>> playerRecordIndices = new HashMap<>();
     private static final Logger L = LoggerFactory.getLogger(PlayerSet.class);
-    public void addIndex(String field)
-    {
-        if(playerRecordIndices.containsKey(field))
+
+    public void addIndex(String field) {
+        if (playerRecordIndices.containsKey(field))
             return;
         Map<Object, Set<AbstractPlayerRecord>> indexMap = new HashMap<>();
         playerRecordIndices.put(field, indexMap);
         doIndex(field);
     }
 
-    public Set<AbstractPlayerRecord> getPlayers(String field, Object value)
-    {
+    public Set<AbstractPlayerRecord> getPlayers(String field, Object value) {
         Map<Object, Set<AbstractPlayerRecord>> index = playerRecordIndices.get(field);
-        if(index == null)
+        if (index == null)
             throw new RuntimeException("No index created for field " + field);
 
         Set<AbstractPlayerRecord> entries = index.getOrDefault(value, new HashSet<>());
         return entries;
     }
 
-    private Member getMember(String field, Class<? extends AbstractPlayerRecord> clazz)
-    {
+    private Member getMember(String field, Class<? extends AbstractPlayerRecord> clazz) {
         return memberMap.computeIfAbsent(field, f -> {
             try {
                 return clazz.getField(f);
@@ -54,12 +52,10 @@ public class PlayerSet {
         });
     }
 
-    private Function<AbstractPlayerRecord, Object> getMemberValue(String fieldOrMethod, Class<? extends AbstractPlayerRecord> clazz)
-    {
+    private Function<AbstractPlayerRecord, Object> getMemberValue(String fieldOrMethod, Class<? extends AbstractPlayerRecord> clazz) {
         Member mem = getMember(fieldOrMethod, clazz);
-        if(mem instanceof Field)
-        {
-            Field f = (Field)mem;
+        if (mem instanceof Field) {
+            Field f = (Field) mem;
             return p -> {
                 try {
                     return f.get(p);
@@ -68,10 +64,8 @@ public class PlayerSet {
                 }
                 return null;
             };
-        }
-        else if(mem instanceof Method)
-        {
-            Method meth = (Method)mem;
+        } else if (mem instanceof Method) {
+            Method meth = (Method) mem;
             return p -> {
                 try {
                     return meth.invoke(p);
@@ -82,12 +76,12 @@ public class PlayerSet {
             };
         }
 
-        return p->null;
+        return p -> null;
     }
 
     private void indexRecord(AbstractPlayerRecord p, String field) {
         Object o = getMemberValue(field, p.getClass()).apply(p);
-        if(o == null) {
+        if (o == null) {
             L.error("Not indexing {}", p.pid);
             return;
         }
@@ -100,15 +94,14 @@ public class PlayerSet {
         removeRecord(p, field, o);
     }
 
-    private void removeRecord(AbstractPlayerRecord p, String field, Object o)
-    {
-        if(o == null) {
+    private void removeRecord(AbstractPlayerRecord p, String field, Object o) {
+        if (o == null) {
             L.error("Can't get memberValue for {} not removing {} from index", field, p.pid);
             return;
         }
 
         Set<AbstractPlayerRecord> playerSet = playerRecordIndices.get(field).get(o);
-        if(playerSet != null) {
+        if (playerSet != null) {
             playerSet.remove(p);
             // TODO MDA: Necessary?
             if (playerSet.size() == 0)
@@ -118,50 +111,51 @@ public class PlayerSet {
         }
     }
 
-    private void indexRecord(AbstractPlayerRecord p)
-    {
+    private void indexRecord(AbstractPlayerRecord p) {
         playerRecordIndices.keySet().forEach(k -> indexRecord(p, k));
     }
 
-    private void doIndex(String field)
-    {
+    private void doIndex(String field) {
         loggedInPlayers.forEach(p -> indexRecord(p, field));
     }
 
-    public void addPlayer(AbstractPlayerRecord rec)
-    {
-        if(loggedInPlayers.contains(rec))
+    public void addPlayer(AbstractPlayerRecord rec) {
+        if (loggedInPlayers.contains(rec))
             return;
         loggedInPlayers.add(rec);
         indexRecord(rec);
     }
 
-    public void removePlayer(AbstractPlayerRecord rec)
-    {
-        if(!loggedInPlayers.remove(rec))
+    public void removePlayer(AbstractPlayerRecord rec) {
+        if (!loggedInPlayers.remove(rec))
             return;
         playerRecordIndices.keySet().forEach(key -> {
             removeRecord(rec, key);
         });
     }
 
-    public void reindexPlayer(AbstractPlayerRecord rec)
-    {
+    public void reindexPlayer(AbstractPlayerRecord rec) {
         removePlayer(rec);
         addPlayer(rec);
     }
 
-    public void reindexSingleField(String field, Object oldVal, AbstractPlayerRecord rec)
-    {
+    public void reindexSingleField(String field, Object oldVal, AbstractPlayerRecord rec) {
         Object newVal = getMemberValue(field, rec.getClass()).apply(rec);
-        if(newVal == oldVal)
+        if (newVal == oldVal)
             return;
         removeRecord(rec, field, oldVal);
         indexRecord(rec, field);
     }
 
-    public Set<AbstractPlayerRecord> getAllPlayers()
+    public AbstractPlayerRecord getPlayer(String field, Object value)
     {
+        Set<AbstractPlayerRecord> res = getPlayers(field, value);
+        if(res == null || res.size() == 0)
+            return null;
+        return res.iterator().next();
+    }
+
+    public Set<AbstractPlayerRecord> getAllPlayers() {
         return loggedInPlayers;
     }
 }

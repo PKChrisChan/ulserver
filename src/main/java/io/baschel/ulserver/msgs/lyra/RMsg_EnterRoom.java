@@ -5,6 +5,7 @@ import java.util.List;
 
 public class RMsg_EnterRoom implements LyraMessage {
     public List<RmRemotePlayer> players;
+
     public RMsg_EnterRoom() {
         players = new ArrayList<>();
     }

@@ -4,8 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GMsg_ChangeStat implements LyraMessage {
-    public static class StatChange
-    {
+    public static class StatChange {
         public int stat;
         public int requesttype;
         public int value;

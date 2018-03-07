@@ -32,8 +32,7 @@ public class GameVerticle extends AbstractServerVerticle implements GameState {
     private PlayerSet playerSet = new PlayerSet();
 
     @Override
-    public void start()
-    {
+    public void start() {
         super.start();
         playerSet.addIndex("pid");
         playerSet.addIndex("upperName");
@@ -47,12 +46,11 @@ public class GameVerticle extends AbstractServerVerticle implements GameState {
 
     @Override
     public void handleServerGlobalMessage(InternalServerMessage ism) {
-        if(ism instanceof DisconnectClient)
-        {
-            DisconnectClient dc = (DisconnectClient)ism;
+        if (ism instanceof DisconnectClient) {
+            DisconnectClient dc = (DisconnectClient) ism;
             L.debug("Got client disconnect for {}", dc.getClientId());
             Set<AbstractPlayerRecord> rec = playerSet.getPlayers("connectionId", dc.getClientId());
-            if(rec != null)
+            if (rec != null)
                 rec.forEach(this::logout);
         }
     }
@@ -60,9 +58,8 @@ public class GameVerticle extends AbstractServerVerticle implements GameState {
     private void handleInternalMessage(Message<JsonObject> msg) {
         JsonObject m = msg.body();
         InternalServerMessage ism = Json.objectFromJsonObject(m, InternalServerMessage.class);
-        if(ism instanceof LoggedInPlayersRequest)
-        {
-            msg.reply(new JsonArray(playerSet.getAllPlayers().stream().map(p->Json.objectToJsonObject(p)).collect(Collectors.toList())));
+        if (ism instanceof LoggedInPlayersRequest) {
+            msg.reply(new JsonArray(playerSet.getAllPlayers().stream().map(p -> Json.objectToJsonObject(p)).collect(Collectors.toList())));
         }
     }
 
@@ -85,21 +82,18 @@ public class GameVerticle extends AbstractServerVerticle implements GameState {
     }
 
     @Override
-    public GamePlayerRecord playerRecordForConnectionId(String connectionId)
-    {
+    public GamePlayerRecord playerRecordForConnectionId(String connectionId) {
         return getPlayerRecordForField("connectionId", connectionId);
     }
 
     @Override
-    public Set<AbstractPlayerRecord> roomPlayers(String locationId)
-    {
+    public Set<AbstractPlayerRecord> roomPlayers(String locationId) {
         return playerSet.getPlayers("locationId", locationId);
     }
 
-    private GamePlayerRecord getPlayerRecordForField(String field, Object lookup)
-    {
+    private GamePlayerRecord getPlayerRecordForField(String field, Object lookup) {
         Set<AbstractPlayerRecord> players = playerSet.getPlayers(field, lookup);
-        if(players != null && players.size() > 0)
+        if (players != null && players.size() > 0)
             return players.toArray(new GamePlayerRecord[]{})[0];
         return null;
     }
@@ -117,11 +111,11 @@ public class GameVerticle extends AbstractServerVerticle implements GameState {
     @Override
     public void sendToRoom(LyraMessage message, String levelRoomId, AbstractPlayerRecord record) {
         Set<AbstractPlayerRecord> room = playerSet.getPlayers("locationId", levelRoomId);
-        if(room == null && record == null)
+        if (room == null && record == null)
             return;
 
-        for(AbstractPlayerRecord target : room)
-            if(target.equals(record))
+        for (AbstractPlayerRecord target : room)
+            if (target.equals(record))
                 continue;
             else
                 sendToPlayer(message, target);
@@ -149,8 +143,7 @@ public class GameVerticle extends AbstractServerVerticle implements GameState {
         playerSet.reindexSingleField("locationId", locationId, player);
     }
 
-    public void sendMotd(AbstractPlayerRecord rec)
-    {
+    public void sendMotd(AbstractPlayerRecord rec) {
         RMsg_Speech s = new RMsg_Speech();
         s.speech_type = String.valueOf(SERVER_TEXT);
         s.speech_text = Main.config.serverConfig.motd;

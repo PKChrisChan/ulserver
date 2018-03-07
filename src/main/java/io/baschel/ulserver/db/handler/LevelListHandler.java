@@ -19,6 +19,7 @@ public class LevelListHandler implements InternalMessageHandler {
 
     private AsyncSQLClient level;
     private static final Logger L = LoggerFactory.getLogger(LevelListHandler.class);
+
     public LevelListHandler(AsyncSQLClient ldb) {
         level = ldb;
     }
@@ -26,21 +27,19 @@ public class LevelListHandler implements InternalMessageHandler {
     @Override
     public void handle(Message<JsonObject> sourceMessage, InternalServerMessage message) {
         level.getConnection(res -> {
-            if(res.failed())
-            {
+            if (res.failed()) {
                 L.error("Failed to connect!", res.failed());
                 return;
             }
 
-            if(message instanceof AllLevelsRequest)
-                _handle(res.result(), sourceMessage, (AllLevelsRequest)message);
+            if (message instanceof AllLevelsRequest)
+                _handle(res.result(), sourceMessage, (AllLevelsRequest) message);
         });
     }
 
     private void _handle(SQLConnection conn, Message<JsonObject> sourceMessage, AllLevelsRequest message) {
         conn.query("select level_id,room_id,no_reap from room", res -> {
-            if(res.failed())
-            {
+            if (res.failed()) {
                 L.error("Failed to fetch levels", res.cause());
                 return;
             }

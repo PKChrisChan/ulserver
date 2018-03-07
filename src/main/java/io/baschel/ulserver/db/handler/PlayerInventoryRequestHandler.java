@@ -1,11 +1,9 @@
 package io.baschel.ulserver.db.handler;
 
 import io.baschel.ulserver.msgs.InternalServerMessage;
-import io.baschel.ulserver.msgs.db.PlayerArtsRequest;
 import io.baschel.ulserver.msgs.db.PlayerInventoryRequest;
 import io.baschel.ulserver.msgs.internal.InternalMessageHandler;
 import io.baschel.ulserver.msgs.lyra.InventoryItem;
-import io.baschel.ulserver.msgs.lyra.LmArts;
 import io.baschel.ulserver.msgs.lyra.LmItem;
 import io.baschel.ulserver.msgs.lyra.LmItemHdr;
 import io.baschel.ulserver.util.Json;
@@ -26,16 +24,15 @@ public class PlayerInventoryRequestHandler implements InternalMessageHandler {
 
     private AsyncSQLClient item;
     private static final Logger L = LoggerFactory.getLogger(PlayerInventoryRequestHandler.class);
-    public PlayerInventoryRequestHandler(AsyncSQLClient idb)
-    {
+
+    public PlayerInventoryRequestHandler(AsyncSQLClient idb) {
         item = idb;
     }
 
     @Override
     public void handle(Message<JsonObject> sourceMessage, InternalServerMessage message) {
-        item.getConnection(res-> {
-            if(res.failed())
-            {
+        item.getConnection(res -> {
+            if (res.failed()) {
                 L.error("Failed to get connection", res.cause());
                 return;
             }
@@ -46,14 +43,13 @@ public class PlayerInventoryRequestHandler implements InternalMessageHandler {
 
     private void _handle(SQLConnection conn, Message<JsonObject> sourceMessage, PlayerInventoryRequest message) {
         conn.queryWithParams("select * from item where owner_id=? and owner_type=?", new JsonArray().add(message.playerId()).add(OWNER_PLAYER), res -> {
-            if(res.failed()) {
+            if (res.failed()) {
                 sourceMessage.fail(-1, res.cause().toString());
                 conn.close();
-            }
-            else {
+            } else {
                 conn.close();
                 List<InventoryItem> inventory = new ArrayList<>();
-                for(int i = 0; i < res.result().getNumRows(); i++)
+                for (int i = 0; i < res.result().getNumRows(); i++)
                     inventory.add(null);
 
                 List<InventoryItem> bad = new ArrayList<>();
@@ -64,18 +60,17 @@ public class PlayerInventoryRequestHandler implements InternalMessageHandler {
                     InventoryItem ii = new InventoryItem();
                     ii.item = item;
                     ii.setPosAndFlags(pos + 1);
-                    if(ii.pos > inventory.size() || ii.pos < 1) {
+                    if (ii.pos > inventory.size() || ii.pos < 1) {
                         ii.setPosAndFlags(0);
                         bad.add(ii);
                     } else
                         inventory.set(pos, ii);
                 });
 
-                if(bad.size() > 0)
-                {
+                if (bad.size() > 0) {
                     int b = 0;
-                    for(int i = 0; i < inventory.size(); i++)
-                        if(inventory.get(i) == null) {
+                    for (int i = 0; i < inventory.size(); i++)
+                        if (inventory.get(i) == null) {
                             bad.get(b).setPosAndFlags(i);
                             inventory.set(i, bad.get(b++));
                         }
@@ -86,8 +81,7 @@ public class PlayerInventoryRequestHandler implements InternalMessageHandler {
         });
     }
 
-    public LmItem itemFromDbRow(JsonObject row)
-    {
+    public LmItem itemFromDbRow(JsonObject row) {
         LmItem item = new LmItem();
         item.header = new LmItemHdr();
         // this isn't a typo, it's just a result of the fuckendess of Lyra's db.

@@ -7,10 +7,9 @@ import static io.baschel.ulserver.msgs.lyra.consts.LyraConsts.NUM_ARTS;
 
 public class LmArts implements LyraMessage {
 
-    public LmArts()
-    {
+    public LmArts() {
         arts = new ArrayList<>();
-        for(int i = 0; i < NUM_ARTS; i++)
+        for (int i = 0; i < NUM_ARTS; i++)
             arts.add(0);
     }
 

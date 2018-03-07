@@ -10,14 +10,15 @@ public class PlayerInventoryRequest implements InternalServerMessage {
     @JsonIgnore
     public boolean failed = false;
 
-    public static PlayerInventoryRequest of(int playerId)
-    {
+    public static PlayerInventoryRequest of(int playerId) {
         PlayerInventoryRequest par = new PlayerInventoryRequest();
         par.pid = playerId;
         return par;
     }
 
-    public int playerId() { return pid; }
+    public int playerId() {
+        return pid;
+    }
 
     @Override
     public String address() {

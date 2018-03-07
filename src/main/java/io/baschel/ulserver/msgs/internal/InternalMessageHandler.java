@@ -6,8 +6,8 @@ import io.vertx.core.json.JsonObject;
 
 import java.util.Set;
 
-public interface InternalMessageHandler
-{
+public interface InternalMessageHandler {
     void handle(Message<JsonObject> sourceMessage, InternalServerMessage message);
+
     Set<Class<? extends InternalServerMessage>> handles();
 }
